@@ -1,0 +1,14 @@
+jupyter
+torch
+torchvision
+torchmetrics
+numpy
+pandas
+matplotlib
+scikit-learn
+optuna
+pillow
+transformers
+einops
+pyswarm
+
