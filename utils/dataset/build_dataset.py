@@ -24,8 +24,8 @@ def data_split(dataset, train_split=0.8):
 
 def load_weedmap_data():
     return WeedMapDatasetInterface(dict(
-        root="../../../../0_rotations_processed_003_test/RedEdge",
-        # root="../data/Weed Map Dataset Processed/RedEdge",
+        root="../../../../../0_rotations_processed_003_test/RedEdge",
+        # root="../../experiments/weed_mapping_experiment/data_weedmap/Weed Map Dataset Processed/RedEdge",
         channels=['R', 'G', 'B', 'NIR', 'RE'],
         train_folders=["000", "001", "002", "004"],
         test_folders=["003"],
