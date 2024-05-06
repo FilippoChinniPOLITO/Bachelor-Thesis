@@ -33,10 +33,10 @@ class OptunaRunner:
 
         # Log Best Results
         logger_study.log(f"\n\nBEST TRIAL RESULTS:\n\n")
-        logger_study.log(f"Best trial n°:        {study.best_trial.number}")
-        logger_study.log(f"Trial {self.metric_to_follow}-score:       {study.best_trial.user_attrs[self.metric_to_follow]}")
-        logger_study.log(f"Best score:           {study.best_trial.value}")
-        logger_study.log(f"Best hyperparameters: {study.best_params}")
+        logger_study.log(f"Best trial n°:         {study.best_trial.number}")
+        logger_study.log(f"Trial {self.metric_to_follow}-score:  {study.best_trial.user_attrs[self.metric_to_follow]}")
+        logger_study.log(f"Best score:            {study.best_trial.value}")
+        logger_study.log(f"Best hyperparameters:  {study.best_params}")
 
         logger_study.end_log()
 
