@@ -42,7 +42,7 @@ class PSO:
 
         self.pruner = pruner
 
-        self.pso_stopper = PSOStopping(tolerance=0.01, patience=3)
+        self.pso_stopper = PSOStopping(tolerance=0.01, patience=5)
 
         self.swarm = [Particle(self.bounds, particle_id=i) for i in range(self.num_particles)]
         self.global_best_score = -np.inf
