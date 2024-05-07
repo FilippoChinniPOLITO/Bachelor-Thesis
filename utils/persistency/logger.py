@@ -57,9 +57,10 @@ class Logger:
                     f"{TEST_LINE}\n\n")
 
     def periodic_log(self, former_mess):
-        if ('Complete' in former_mess) or ('Pruned' in former_mess):
+        condition = ('Complete' in former_mess) or ('Pruned' in former_mess)
+        if condition:
             self.log_count += 1
-        if (self.log_count % 10 == 0) and (self.log_count > 0):
+        if (self.log_count % 10 == 0) and (self.log_count > 0) and condition:
             print(f"{GREEN}PERIODIC LOG: {str(datetime.now()).split('.')[0]}{END_COLOR}")
             with open(self.log_file, 'a') as f:
                 f.write(f"\n\n{TILD_LINE}\n"
