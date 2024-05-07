@@ -42,6 +42,8 @@ class PSO:
 
         self.pruner = pruner
 
+        self.pso_stopper = PSOStopping(tolerance=0.3, patience=5)
+
         self.swarm = [Particle(self.bounds, particle_id=i) for i in range(self.num_particles)]
         self.global_best_score = -np.inf
         self.global_best_position = None
@@ -56,6 +58,8 @@ class PSO:
             if self.pruner is not None:
                 self.pruner.active_pruning(i)
 
+            logger.test(f"PRUNING ACTIVE:{self.pruner.is_pruning_active}\t\tGENERATION:{i}")  # TODO: Remove this line
+
             results = Parallel(n_jobs)(delayed(self.process_particle)(particle, i, logger) for particle in self.swarm)
 
             for current_trial, fitness, particle in results:
@@ -65,6 +69,10 @@ class PSO:
                     self.global_best_score = fitness
                     self.global_best_position = np.copy(particle.position)
                     self.best_trial = copy.deepcopy(current_trial)
+
+            if self.pso_stopper.should_stop(self.global_best_score):
+                logger.log(f"\n\n{'=':=<50}\nPSO Process Early-Stopped at Generation n° {i+1}\n{'=':=<50}\n\n")
+                break
 
             w = self.inertia_factor_update(current_iter=i)
             c1 = self.cognitive_factor_update(current_iter=i)
@@ -178,5 +186,24 @@ class PSOTrial:
         new_trial.datetime_complete = copy.deepcopy(self.datetime_complete, memo)
         new_trial.user_attrs = copy.deepcopy(self.user_attrs, memo)
         return new_trial
+
+
+class PSOStopping:
+    def __init__(self, tolerance, patience):
+        self.tolerance = tolerance
+        self.patience = patience
+        self.no_improvement_count = 0
+        self.previous_best_score = -np.inf
+
+    def should_stop(self, global_best_score):
+        if abs(global_best_score - self.previous_best_score) < self.tolerance:
+            self.no_improvement_count += 1
+        else:
+            self.no_improvement_count = 0
+
+        self.previous_best_score = global_best_score
+
+        return self.no_improvement_count >= self.patience
+
 
 

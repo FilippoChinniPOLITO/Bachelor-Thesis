@@ -79,6 +79,7 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
                 raise optuna.TrialPruned()
         if is_pso:
             trial.report(score=early_stopper.get_best_score(), step=epoch_index)
+            logger.test(f'ARRIVED IN is_pso\nshould: {trial.should_prune()}')  # TODO Remove test
             if (optim_score < 0) or (trial.should_prune()):
                 trial.set_user_attr(key='accuracy', value=accuracy_score)
                 trial.set_user_attr(key='precision', value=precision_score)
@@ -86,6 +87,7 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
                 trial.set_user_attr(key='f1', value=f1_score)
                 logger.log(f"Trial Gen n°{trial.generation} - Particle n°{trial.particle_id} Pruned!\n\n")
                 cuda.empty_cache()
+                trial.prune_trial()
                 return early_stopper.get_best_score()
 
     if is_optuna:
