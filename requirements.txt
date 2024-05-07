@@ -10,5 +10,4 @@ optuna
 pillow
 transformers
 einops
-pyswarm
 
