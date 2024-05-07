@@ -40,9 +40,9 @@ class PSOMedianPruner(BasePSOPruner):
             return False
         if trial.last_reported_step % self.interval_steps != 0:
             return False
-        if len(self.reports_map[trial.last_reported_step-5]) < self.min_trials_per_step:
+        if len(self.reports_map[trial.last_reported_step]) < self.min_trials_per_step:
             return False
-        if trial.best_reported_score < np.median(self.reports_map[trial.last_reported_step-5]):
+        if trial.best_reported_score < np.median(self.reports_map[trial.last_reported_step]):
             return True
         return False
 

@@ -30,7 +30,7 @@ class Particle:
 
 
 class PSO:
-    def __init__(self, objective_fn, hps_bounds, num_particles, max_generations, pruner = None):
+    def __init__(self, objective_fn, hps_bounds, num_particles, max_generations, pruner=None):
         self.objective_fn = objective_fn
 
         self.hps = hps_bounds
@@ -57,8 +57,6 @@ class PSO:
 
             if self.pruner is not None:
                 self.pruner.active_pruning(i)
-
-            logger.test(f"PRUNING ACTIVE:{self.pruner.is_pruning_active}\t\tGENERATION:{i}")  # TODO: Remove this line
 
             results = Parallel(n_jobs)(delayed(self.process_particle)(particle, i, logger) for particle in self.swarm)
 
@@ -116,7 +114,7 @@ class PSO:
 
 
 class PSOTrial:
-    def __init__(self, particle_id, generation, hyperparameters, pruner = None):
+    def __init__(self, particle_id, generation, hyperparameters, pruner=None):
         self.particle_id = particle_id
         self.generation = generation
         self.hyperparameters = hyperparameters
