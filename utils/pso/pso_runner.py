@@ -22,7 +22,7 @@ class PSORunner:
 
         # Run Optimization
         try:
-            pso_study.optimize(logger=logger_study)
+            pso_study.optimize(n_jobs=self.n_jobs, logger=logger_study)
         except Exception as e:
             logger_study.err(e)
             return None

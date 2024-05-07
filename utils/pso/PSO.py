@@ -42,45 +42,52 @@ class PSO:
 
         self.pruner = pruner
 
+        self.swarm = [Particle(self.bounds, particle_id=i) for i in range(self.num_particles)]
+        self.global_best_score = -np.inf
+        self.global_best_position = None
+
         self.trials_list = []
         self.best_trial = None
 
     def optimize(self, n_jobs=1, logger=None):
-        swarm = [Particle(self.bounds, particle_id=i) for i in range(self.num_particles)]
-        global_best_score = -np.inf
-        global_best_position = None
 
         for i in range(self.max_generations):
 
             if self.pruner is not None:
                 self.pruner.active_pruning(i)
 
-            for particle in swarm:
-                current_trial = PSOTrial(particle_id=particle.particle_id,
-                                         generation=i+1,
-                                         hyperparameters=self.position_to_hps_map(particle.position),
-                                         pruner=self.pruner)
-                fitness = self.objective_fn(current_trial, logger)
-                current_trial.complete_trail(score=fitness)
+            results = Parallel(n_jobs)(delayed(self.process_particle)(particle, i, logger) for particle in self.swarm)
+
+            for current_trial, fitness, particle in results:
                 self.trials_list.append(current_trial)
 
-                if fitness > particle.personal_best_score:
-                    particle.personal_best_score = fitness
-                    particle.personal_best_position = np.copy(particle.position)
-
-                if fitness > global_best_score:
-                    global_best_score = fitness
-                    global_best_position = np.copy(particle.position)
+                if fitness > self.global_best_score:
+                    self.global_best_score = fitness
+                    self.global_best_position = np.copy(particle.position)
                     self.best_trial = copy.deepcopy(current_trial)
 
             w = self.inertia_factor_update(current_iter=i)
             c1 = self.cognitive_factor_update(current_iter=i)
             c2 = self.social_factor_update(current_iter=i)
-            for particle in swarm:
-                particle.update_velocity(global_best_position, w, c1, c2)
+            for particle in self.swarm:
+                particle.update_velocity(self.global_best_position, w, c1, c2)
                 particle.update_position(self.bounds)
 
-        return global_best_position, global_best_score
+        return self.position_to_hps_map(self.global_best_position), self.global_best_score
+
+    def process_particle(self, particle, i, logger):
+        current_trial = PSOTrial(particle_id=particle.particle_id,
+                                 generation=i+1,
+                                 hyperparameters=self.position_to_hps_map(particle.position),
+                                 pruner=self.pruner)
+        fitness = self.objective_fn(current_trial, logger)
+        current_trial.complete_trail(score=fitness)
+
+        if fitness > particle.personal_best_score:
+            particle.personal_best_score = fitness
+            particle.personal_best_position = np.copy(particle.position)
+
+        return current_trial, fitness, particle
 
     def inertia_factor_update(self, current_iter):
         return (0.4 * ((current_iter - self.max_generations) / (self.max_generations ** 2))) + 0.4
