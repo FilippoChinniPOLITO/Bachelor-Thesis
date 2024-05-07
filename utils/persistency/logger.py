@@ -30,7 +30,6 @@ class Logger:
         with open(self.log_file, 'a') as f:
             f.write(message + '\n')
 
-        self.log_count += 1
         self.periodic_log(message)
 
     def end_log(self):
@@ -58,12 +57,14 @@ class Logger:
                     f"{TEST_LINE}\n\n")
 
     def periodic_log(self, former_mess):
-        if (self.log_count % 10 == 0) and (('Complete' in former_mess) or ('Pruned' in former_mess)):
+        if ('Complete' in former_mess) or ('Pruned' in former_mess):
+            self.log_count += 1
+        if (self.log_count % 10 == 0) and (self.log_count > 0):
             print(f"{GREEN}PERIODIC LOG: {str(datetime.now()).split('.')[0]}{END_COLOR}")
             with open(self.log_file, 'a') as f:
                 f.write(f"\n\n{TILD_LINE}\n"
                         f"PERIODIC LOG\n\n"
                         f"State: Still Running\n"
-                        f"Log Count: {self.log_count}\n"
+                        f"Completed/Pruned Trials: {self.log_count}\n"
                         f"Date: {str(datetime.now()).split('.')[0]}\n"
                         f"{TILD_LINE}\n\n")
