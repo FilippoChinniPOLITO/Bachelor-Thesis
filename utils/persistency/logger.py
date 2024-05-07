@@ -76,3 +76,4 @@ class Logger:
                         f"Completed/Pruned Trials: {self.log_count}\n"
                         f"Date: {str(datetime.now()).split('.')[0]}\n"
                         f"{TILD_LINE}\n\n")
+
