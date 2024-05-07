@@ -11,6 +11,7 @@ def init_model(model_str: str, extra_args: dict):
         mlp_activation = extra_args['activation']
         return MLP(layer_sizes=mlp_architecture, activation=mlp_activation)
     elif model_str == 'Lawin':
+        extra_args["num_classes"] = 3
         return Lawin(extra_args)
 
 
