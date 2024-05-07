@@ -31,7 +31,7 @@ class Logger:
             f.write(message + '\n')
 
         self.log_count += 1
-        self.periodic_log()
+        self.periodic_log(message)
 
     def end_log(self):
         with open(self.log_file, 'a') as f:
@@ -57,12 +57,12 @@ class Logger:
                     f"TEST: {test_message}\n"
                     f"{TEST_LINE}\n\n")
 
-    def periodic_log(self):
+    def periodic_log(self, former_mess):
         print(f"{GREEN}PERIODIC LOG: {str(datetime.now()).split('.')[0]}{END_COLOR}")
-        if self.log_count % 100 == 0:
+        if (self.log_count % 100 == 0) and ('Intermediate Optimization' in former_mess):
             with open(self.log_file, 'a') as f:
                 f.write(f"\n\n{TILD_LINE}\n"
-                        f"\nPERIODIC LOG\n\n"
+                        f"PERIODIC LOG\n\n"
                         f"State: Still Running\n"
                         f"Log Count: {self.log_count}\n"
                         f"Date: {str(datetime.now()).split('.')[0]}\n"
