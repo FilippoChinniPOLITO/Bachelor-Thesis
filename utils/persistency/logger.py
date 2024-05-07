@@ -58,8 +58,8 @@ class Logger:
                     f"{TEST_LINE}\n\n")
 
     def periodic_log(self, former_mess):
-        print(f"{GREEN}PERIODIC LOG: {str(datetime.now()).split('.')[0]}{END_COLOR}")
         if (self.log_count % 100 == 0) and ('Intermediate Optimization' in former_mess):
+            print(f"{GREEN}PERIODIC LOG: {str(datetime.now()).split('.')[0]}{END_COLOR}")
             with open(self.log_file, 'a') as f:
                 f.write(f"\n\n{TILD_LINE}\n"
                         f"PERIODIC LOG\n\n"
