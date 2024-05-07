@@ -62,6 +62,7 @@ class Logger:
         if self.log_count % 100 == 0:
             with open(self.log_file, 'a') as f:
                 f.write(f"\n\n{TILD_LINE}\n"
+                        f"\nPERIODIC LOG\n\n"
                         f"State: Still Running\n"
                         f"Log Count: {self.log_count}\n"
                         f"Date: {str(datetime.now()).split('.')[0]}\n"
