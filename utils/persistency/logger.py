@@ -68,7 +68,7 @@ class Logger:
         if condition:
             self.log_count += 1
         if ((self.log_count % 10 == 0) and (self.log_count > 0) and condition) or condition_async_bug:
-            print(f"{GREEN}PERIODIC LOG: {str(datetime.now()).split('.')[0]}{END_COLOR}")
+            print(f"{GREEN}PERIODIC LOG: {str(datetime.now()).split('.')[0]}{END_COLOR}\n")
             with open(self.log_file, 'a') as f:
                 f.write(f"\n\n{TILD_LINE}\n"
                         f"PERIODIC LOG\n\n"
