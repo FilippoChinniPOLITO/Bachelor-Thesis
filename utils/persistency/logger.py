@@ -1,3 +1,4 @@
+import random
 import traceback
 from datetime import datetime
 
@@ -58,9 +59,15 @@ class Logger:
 
     def periodic_log(self, former_mess):
         condition = ('Complete' in former_mess) or ('Pruned' in former_mess)
+        condition_async_bug = False
+        if random.randint(1, 500) == 1:
+            with open(self.log_file, 'r') as f:
+                content = f.read()
+            condition_async_bug = (not ('PERIODIC' in content))
+
         if condition:
             self.log_count += 1
-        if (self.log_count % 10 == 0) and (self.log_count > 0) and condition:
+        if ((self.log_count % 10 == 0) and (self.log_count > 0) and condition) or condition_async_bug:
             print(f"{GREEN}PERIODIC LOG: {str(datetime.now()).split('.')[0]}{END_COLOR}")
             with open(self.log_file, 'a') as f:
                 f.write(f"\n\n{TILD_LINE}\n"
