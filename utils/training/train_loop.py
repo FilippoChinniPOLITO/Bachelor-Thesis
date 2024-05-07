@@ -34,12 +34,12 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
         # Print Metrics
         if is_optuna:
             trial.set_user_attr(key='epochs', value=epoch_index+1)
-            logger.log(f"\nTrial n°{trial.number} - Epoch {epoch_index+1}\n-------------------------------")
+            logger.log(f"\nTrial n°{trial.number} - Epoch {epoch_index+1}\n----------------------------------------")
         elif is_pso:
             trial.set_user_attr(key='epochs', value=epoch_index+1)
-            logger.log(f"\nTrial Gen n°{trial.generation} - Particle n°{trial.particle_id} - Epoch {epoch_index+1}\n-------------------------------")
+            logger.log(f"\nTrial Gen n°{trial.generation} - Particle n°{trial.particle_id} - Epoch {epoch_index+1}\n----------------------------------------")
         else:
-            logger.log(f"Training - \nEpoch {epoch_index+1}\n-------------------------------")
+            logger.log(f"Training - \nEpoch {epoch_index+1}\n----------------------------------------")
         logger.log(f"Intermediate Avg loss:   {val_loss:>0.4f}")
         logger.log(f"Intermediate Accuracy:   {accuracy_score*100:>0.4f}%")
         logger.log(f"Intermediate Precision:  {precision_score*100:>0.4f}%")
@@ -105,14 +105,16 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
         trial.set_user_attr(key='precision', value=final_precision_score)
         trial.set_user_attr(key='recall', value=final_recall_score)
         trial.set_user_attr(key='f1', value=final_f1_score)
-        logger.log(f"\nTrial number: {trial.number}")
+        logger.log(f"\nReport Finished Trial:\n----------------------------------------")
+        logger.log(f"Trial number: {trial.number}")
         logger.log(f"Hyperparameters: {trial.params}")
     elif is_pso:
         trial.set_user_attr(key='accuracy', value=final_accuracy_score)
         trial.set_user_attr(key='precision', value=final_precision_score)
         trial.set_user_attr(key='recall', value=final_recall_score)
         trial.set_user_attr(key='f1', value=final_f1_score)
-        logger.log(f"\nTrial: Gen n°{trial.generation} - Particle n°{trial.particle_id}")
+        logger.log(f"\nReport Finished Trial:\n----------------------------------------")
+        logger.log(f"Trial: Gen n°{trial.generation} - Particle n°{trial.particle_id}")
         logger.log(f"Hyperparameters: {trial.hyperparameters}")
     logger.log(f"Test Accuracy:   {final_accuracy_score*100:>0.4f}%")
     logger.log(f"Test Precision:  {final_precision_score*100:>0.4f}%")
@@ -156,12 +158,12 @@ def full_train_loop_weedmapping(max_epochs, train_loader, val_loader, test_loade
         # Print Metrics
         if is_optuna:
             trial.set_user_attr(key='epochs', value=epoch_index+1)
-            logger.log(f"\nTrial n°{trial.number} - Epoch {epoch_index+1}\n-------------------------------")
+            logger.log(f"\nTrial n°{trial.number} - Epoch {epoch_index+1}\n----------------------------------------")
         elif is_pso:
             trial.set_user_attr(key='epochs', value=epoch_index+1)
-            logger.log(f"\nTrial Gen n°{trial.generation} - Particle n°{trial.particle_id} - Epoch {epoch_index+1}\n-------------------------------")
+            logger.log(f"\nTrial Gen n°{trial.generation} - Particle n°{trial.particle_id} - Epoch {epoch_index+1}\n----------------------------------------")
         else:
-            logger.log(f"Training - \nEpoch {epoch_index+1}\n-------------------------------")
+            logger.log(f"Training - \nEpoch {epoch_index+1}\n----------------------------------------")
         logger.log(f"Intermediate Avg loss:   {val_loss:>0.4f}")
         logger.log(f"Intermediate F1:         {f1_score*100:>0.4f}%")
         logger.log(f"Intermediate Precision:  {precision_score*100:>0.4f}%")
@@ -222,13 +224,15 @@ def full_train_loop_weedmapping(max_epochs, train_loader, val_loader, test_loade
         trial.set_user_attr(key='f1', value=final_f1_score)
         trial.set_user_attr(key='precision', value=final_precision_score)
         trial.set_user_attr(key='recall', value=final_recall_score)
-        logger.log(f"\nTrial number: {trial.number}")
+        logger.log(f"\nReport Finished Trial:\n----------------------------------------")
+        logger.log(f"Trial number: {trial.number}")
         logger.log(f"Hyperparameters: {trial.params}")
     elif is_pso:
         trial.set_user_attr(key='f1', value=final_f1_score)
         trial.set_user_attr(key='precision', value=final_precision_score)
         trial.set_user_attr(key='recall', value=final_recall_score)
-        logger.log(f"\nTrial: Gen n°{trial.generation} - Particle n°{trial.particle_id}")
+        logger.log(f"\nReport Finished Trial:\n----------------------------------------")
+        logger.log(f"Trial: Gen n°{trial.generation} - Particle n°{trial.particle_id}")
         logger.log(f"Hyperparameters: {trial.hyperparameters}")
     logger.log(f"Test F1:         {final_f1_score*100:>0.4f}%")
     logger.log(f"Test Precision:  {final_precision_score*100:>0.4f}%")
