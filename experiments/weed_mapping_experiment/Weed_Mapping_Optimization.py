@@ -85,7 +85,7 @@ def objective(trial: Trial, logger: Logger):
 
     # Init Loss
     focal_extra_args = {"gamma": loss_gamma, "weight": loss_weight}
-    loss_fn = get_loss_fn(loss_str='FocalLoss', extra_args=focal_extra_args)
+    loss_fn = get_loss_fn(loss_str='Focal', extra_args=focal_extra_args)
 
     # Init Optimizer
     optimizer = get_optimizer(model=model, optimizer_str=optimizer_str, learning_rate=learning_rate)
