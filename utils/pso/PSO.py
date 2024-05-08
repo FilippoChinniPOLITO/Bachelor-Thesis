@@ -166,13 +166,13 @@ class PSOTrial:
         return {
             'generation': self.generation,
             'particle_id': self.particle_id,
-            'score': self.score,
+            'score': round(self.score, 4),
             **{f'user_attrs_{key}': self.user_attrs[key] for key in self.user_attrs},
             'state': self.state,
             **{f'hp_{key}': round(self.hyperparameters[key], 4) for key in self.hyperparameters},
-            'duration': self.duration,
-            'datetime_start': self.datetime_start,
-            'datetime_complete': self.datetime_complete,
+            'duration': str(self.duration).split('.')[0],
+            'datetime_start': str(self.datetime_start).split('.')[0],
+            'datetime_complete': str(self.datetime_complete).split('.')[0],
         }
 
     def __deepcopy__(self, memo):

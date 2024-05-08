@@ -57,7 +57,6 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
 
         # Check Early-Stopping Step
         if early_stopper(score=optim_score, model=model):
-            model.load_state_dict(early_stopper.get_best_model_params())
             if is_optuna:
                 logger.log(f"Trial n°{trial.number} Early Stopped!")
             elif is_pso:
@@ -70,20 +69,20 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
         if is_optuna:
             trial.report(value=early_stopper.get_best_score(), step=epoch_index)
             if (optim_score < 0) or (trial.should_prune()):
-                trial.set_user_attr(key='accuracy', value=accuracy_score)
-                trial.set_user_attr(key='precision', value=precision_score)
-                trial.set_user_attr(key='recall', value=recall_score)
-                trial.set_user_attr(key='f1', value=f1_score)
+                trial.set_user_attr(key='accuracy', value=round(accuracy_score, 4))
+                trial.set_user_attr(key='precision', value=round(precision_score, 4))
+                trial.set_user_attr(key='recall', value=round(recall_score, 4))
+                trial.set_user_attr(key='f1', value=round(f1_score, 4))
                 logger.log(f"Trial n°{trial.number} Pruned!\n\n")
                 cuda.empty_cache()
                 raise optuna.TrialPruned()
         if is_pso:
             trial.report(score=early_stopper.get_best_score(), step=epoch_index)
             if (optim_score < 0) or (trial.should_prune()):
-                trial.set_user_attr(key='accuracy', value=accuracy_score)
-                trial.set_user_attr(key='precision', value=precision_score)
-                trial.set_user_attr(key='recall', value=recall_score)
-                trial.set_user_attr(key='f1', value=f1_score)
+                trial.set_user_attr(key='accuracy', value=round(accuracy_score, 4))
+                trial.set_user_attr(key='precision', value=round(precision_score, 4))
+                trial.set_user_attr(key='recall', value=round(recall_score, 4))
+                trial.set_user_attr(key='f1', value=round(f1_score, 4))
                 logger.log(f"Trial Gen n°{trial.generation} - Particle n°{trial.particle_id} Pruned!\n\n")
                 cuda.empty_cache()
                 trial.prune_trial()
@@ -96,23 +95,25 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
     else:
         logger.log(f"Training Complete!\n\n")
 
+    model.load_state_dict(early_stopper.get_best_model_params())
+
 
     # Evaluate Model - Evaluation Metrics
     _ = eval_step(test_loader, model, loss_fn)
     final_accuracy_score, final_precision_score, final_recall_score, final_f1_score = (i.item() for i in _[1:])
     if is_optuna:
-        trial.set_user_attr(key='accuracy', value=final_accuracy_score)
-        trial.set_user_attr(key='precision', value=final_precision_score)
-        trial.set_user_attr(key='recall', value=final_recall_score)
-        trial.set_user_attr(key='f1', value=final_f1_score)
+        trial.set_user_attr(key='accuracy', value=round(final_accuracy_score, 4))
+        trial.set_user_attr(key='precision', value=round(final_precision_score, 4))
+        trial.set_user_attr(key='recall', value=round(final_recall_score, 4))
+        trial.set_user_attr(key='f1', value=round(final_f1_score, 4))
         logger.log(f"\nReport Finished Trial:\n----------------------------------------")
         logger.log(f"Trial number: {trial.number}")
         logger.log(f"Hyperparameters: {trial.params}")
     elif is_pso:
-        trial.set_user_attr(key='accuracy', value=final_accuracy_score)
-        trial.set_user_attr(key='precision', value=final_precision_score)
-        trial.set_user_attr(key='recall', value=final_recall_score)
-        trial.set_user_attr(key='f1', value=final_f1_score)
+        trial.set_user_attr(key='accuracy', value=round(final_accuracy_score, 4))
+        trial.set_user_attr(key='precision', value=round(final_precision_score, 4))
+        trial.set_user_attr(key='recall', value=round(final_recall_score, 4))
+        trial.set_user_attr(key='f1', value=round(final_f1_score, 4))
         logger.log(f"\nReport Finished Trial:\n----------------------------------------")
         logger.log(f"Trial: Gen n°{trial.generation} - Particle n°{trial.particle_id}")
         logger.log(f"Hyperparameters: {trial.hyperparameters}")
@@ -180,7 +181,6 @@ def full_train_loop_weedmapping(max_epochs, train_loader, val_loader, test_loade
 
         # Check Early-Stopping Step
         if early_stopper(score=optim_score, model=model):
-            model.load_state_dict(early_stopper.get_best_model_params())
             if is_optuna:
                 logger.log(f"Trial n°{trial.number} Early Stopped!")
             elif is_pso:
@@ -193,18 +193,18 @@ def full_train_loop_weedmapping(max_epochs, train_loader, val_loader, test_loade
         if is_optuna:
             trial.report(value=early_stopper.get_best_score(), step=epoch_index)
             if (optim_score < 0) or (trial.should_prune()):
-                trial.set_user_attr(key='f1', value=f1_score)
-                trial.set_user_attr(key='precision', value=precision_score)
-                trial.set_user_attr(key='recall', value=recall_score)
+                trial.set_user_attr(key='f1', value=round(f1_score, 4))
+                trial.set_user_attr(key='precision', value=round(precision_score, 4))
+                trial.set_user_attr(key='recall', value=round(recall_score, 4))
                 logger.log(f"Trial n°{trial.number} Pruned!\n\n")
                 cuda.empty_cache()
                 raise optuna.TrialPruned()
         if is_pso:
             trial.report(score=early_stopper.get_best_score(), step=epoch_index)
             if (optim_score < 0) or (trial.should_prune()):
-                trial.set_user_attr(key='f1', value=f1_score)
-                trial.set_user_attr(key='precision', value=precision_score)
-                trial.set_user_attr(key='recall', value=recall_score)
+                trial.set_user_attr(key='f1', value=round(f1_score, 4))
+                trial.set_user_attr(key='precision', value=round(precision_score, 4))
+                trial.set_user_attr(key='recall', value=round(recall_score, 4))
                 logger.log(f"Trial Gen n°{trial.generation} - Particle n°{trial.particle_id} Pruned!\n\n")
                 cuda.empty_cache()
                 return early_stopper.get_best_score()
@@ -216,21 +216,22 @@ def full_train_loop_weedmapping(max_epochs, train_loader, val_loader, test_loade
     else:
         logger.log(f"Training Complete!\n\n")
 
+    model.load_state_dict(early_stopper.get_best_model_params())
 
     # Evaluate Model - Evaluation Metrics
     _ = eval_step_weedmapping(test_loader, model, loss_fn)
     final_f1_score, final_precision_score, final_recall_score = (i.item() for i in _[1:])
     if is_optuna:
-        trial.set_user_attr(key='f1', value=final_f1_score)
-        trial.set_user_attr(key='precision', value=final_precision_score)
-        trial.set_user_attr(key='recall', value=final_recall_score)
+        trial.set_user_attr(key='f1', value=round(final_f1_score, 4))
+        trial.set_user_attr(key='precision', value=round(final_precision_score, 4))
+        trial.set_user_attr(key='recall', value=round(final_recall_score, 4))
         logger.log(f"\nReport Finished Trial:\n----------------------------------------")
         logger.log(f"Trial number: {trial.number}")
         logger.log(f"Hyperparameters: {trial.params}")
     elif is_pso:
-        trial.set_user_attr(key='f1', value=final_f1_score)
-        trial.set_user_attr(key='precision', value=final_precision_score)
-        trial.set_user_attr(key='recall', value=final_recall_score)
+        trial.set_user_attr(key='f1', value=round(final_f1_score, 4))
+        trial.set_user_attr(key='precision', value=round(final_precision_score, 4))
+        trial.set_user_attr(key='recall', value=round(final_recall_score, 4))
         logger.log(f"\nReport Finished Trial:\n----------------------------------------")
         logger.log(f"Trial: Gen n°{trial.generation} - Particle n°{trial.particle_id}")
         logger.log(f"Hyperparameters: {trial.hyperparameters}")
