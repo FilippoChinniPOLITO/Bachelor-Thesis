@@ -37,8 +37,8 @@ from utils.persistency.file_name_builder import file_name_builder, folder_exists
 #%%
 session_num = '003'
 #%%
-outputs_folder_path_csv = 'output_files_PSO/csv'
-outputs_folder_path_txt = 'output_files_PSO/txt'
+outputs_folder_path_csv = 'output_files_PSO_MNIST/csv'
+outputs_folder_path_txt = 'output_files_PSO_MNIST/txt'
 #%% md
 ## Load Data
 #%%

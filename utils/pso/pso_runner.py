@@ -31,7 +31,7 @@ class PSORunner:
         logger_study.log(f"\n\nBEST TRIAL RESULTS:\n\n")
         logger_study.log(f"Best trial Gen n°:         {pso_study.best_trial.generation}")
         logger_study.log(f"Best trial Particle n°:    {pso_study.best_trial.particle_id}")
-        logger_study.log(f"Best trial {self.metric_to_follow}-score:  {pso_study.best_trial.user_attrs[self.metric_to_follow]}")
+        logger_study.log(f"Best trial {self.metric_to_follow}-score: {pso_study.best_trial.user_attrs[self.metric_to_follow]}")
         logger_study.log(f"Best score:                {pso_study.best_trial.score}")
         logger_study.log(f"Best hyperparameters:      {pso_study.best_trial.hyperparameters}")
 

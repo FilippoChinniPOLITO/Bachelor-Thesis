@@ -42,7 +42,7 @@ class PSO:
 
         self.pruner = pruner
 
-        self.pso_stopper = PSOStopping(tolerance=0.01, patience=5)
+        self.pso_stopper = PSOStopping(tolerance=0.005, patience=5)
 
         self.swarm = [Particle(self.bounds, particle_id=i) for i in range(self.num_particles)]
         self.global_best_score = -np.inf
@@ -169,7 +169,7 @@ class PSOTrial:
             'score': self.score,
             **{f'user_attrs_{key}': self.user_attrs[key] for key in self.user_attrs},
             'state': self.state,
-            **{f'hp_{key}': round(self.hyperparameters[key], 3) for key in self.hyperparameters},
+            **{f'hp_{key}': round(self.hyperparameters[key], 4) for key in self.hyperparameters},
             'duration': self.duration,
             'datetime_start': self.datetime_start,
             'datetime_complete': self.datetime_complete,
