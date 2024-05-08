@@ -36,7 +36,7 @@ from utils.persistency.file_name_builder import file_name_builder, folder_exists
 #%% md
 ### Init Session
 #%%
-session_num = '008'
+session_num = '009'
 #%%
 outputs_folder_path_csv = 'output_files_MNIST/csv'
 outputs_folder_path_txt = 'output_files_MNIST/txt'
