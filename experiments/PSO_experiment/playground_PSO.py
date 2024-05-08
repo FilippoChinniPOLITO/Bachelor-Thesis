@@ -35,7 +35,7 @@ from utils.persistency.file_name_builder import file_name_builder, folder_exists
 #%% md
 ### Init Session
 #%%
-session_num = '002'
+session_num = '003'
 #%%
 outputs_folder_path_csv = 'output_files_PSO/csv'
 outputs_folder_path_txt = 'output_files_PSO/txt'
@@ -129,10 +129,14 @@ DYNAMIC_HPs = {
 #%%
 pso_pruner = PSOMedianPruner(n_startup_generations=3, n_warmup_steps=4, interval_steps=4, min_trials_per_step=4)
 #%%
-pso = PSO(objective_fn=objective, hps_bounds=DYNAMIC_HPs, num_particles=16, max_generations=10, pruner=None)
+pso = PSO(objective_fn=objective, hps_bounds=DYNAMIC_HPs, num_particles=20, max_generations=10, pruner=None)
 #%% md
 ### Run Optimization
 #%%
-pso_runner = PSORunner(path_csv=outputs_folder_path_csv, path_txt=outputs_folder_path_txt, session_num=session_num, n_jobs=8, metric_to_follow='accuracy', attrs=None)
+pso_runner = PSORunner(path_csv=outputs_folder_path_csv,
+                       path_txt=outputs_folder_path_txt,
+                       session_num=session_num,
+                       n_jobs=10,
+                       metric_to_follow='accuracy', attrs=None)
 #%%
 pso_runner(pso, 'PSO_Optimization')
