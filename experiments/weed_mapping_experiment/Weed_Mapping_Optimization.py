@@ -58,16 +58,20 @@ def objective(trial: Trial, logger: Logger):
     backbone_str = trial.suggest_categorical('backbone', [s for s in MODEL_ARCHITECTURES_WEEDMAPPING.keys()])
 
     # Define Hyperparameters - Batch Sizes
-    batch_size_train = trial.suggest_int('batch_size_train', 4, 8, 2)
-    batch_size_val = trial.suggest_int('batch_size_val', 6, 12, 6)
+    # batch_size_train = trial.suggest_int('batch_size_train', 4, 8, 2)
+    # batch_size_val = trial.suggest_int('batch_size_val', 6, 12, 6)
+    batch_size_train = 4
+    batch_size_val = 4
 
     # Define Hyperparameters - Training HPs
     learning_rate = trial.suggest_float('learning_rate', 1e-4, 1e-2, log=True)
     optimizer_str = trial.suggest_categorical('optimizer', ['SGD', 'Adam'])
 
     # Define Hyperparameters - Loss Function
-    loss_gamma = trial.suggest_float('loss_gamma', 0.5, 5.0, log=True)
-    loss_weight = [trial.suggest_float(f'loss_weight_{i+1}', 0.1, 2.0, log=True) for i in range(3)]
+    # loss_gamma = trial.suggest_float('loss_gamma', 0.5, 5.0, log=True)
+    # loss_weight = [trial.suggest_float(f'loss_weight_{i+1}', 0.1, 2.0, log=True) for i in range(3)]
+    loss_gamma = 2.0
+    loss_weight = [0.06, 1.0, 1.7]
 
     # Define Hyperparameters - Epochs
     max_epochs = 200
@@ -91,7 +95,7 @@ def objective(trial: Trial, logger: Logger):
     optimizer = get_optimizer(model=model, optimizer_str=optimizer_str, learning_rate=learning_rate)
 
     # Init Regularizer
-    regularizer = Regularizer_WeedMapping(lambda_widths=0.4, max_sum_widths=2048)
+    regularizer = Regularizer_WeedMapping(lambda_widths=0.4, max_sum_widths=1024)
 
     # Init Early Stopper
     early_stopper = EarlyStopper(patience=15, mode="maximize")
@@ -118,7 +122,7 @@ ATTRS = ('number', 'value', 'user_attrs', 'state', 'params', 'duration', 'dateti
 DIRECTION = 'maximize'
 #%%
 optuna_runner = OptunaRunner(objective_fn=objective,
-                             n_jobs=-1,
+                             n_jobs=2,
                              n_trials=64,
                              path_csv=outputs_folder_path_csv,
                              path_txt=outputs_folder_path_txt,
