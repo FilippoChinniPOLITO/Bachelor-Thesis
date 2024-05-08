@@ -2,7 +2,7 @@ import torch
 from torch import nn
 from experiments.weed_mapping_experiment.backend.loss.focal_loss import FocalLoss
 from experiments.weed_mapping_experiment.backend.model.lawin_model import Lawin
-from experiments.MNIST_experiment.backend.model.MLP import MLP
+from utils.model.MLP import MLP
 
 
 def init_model(model_str: str, extra_args: dict):
