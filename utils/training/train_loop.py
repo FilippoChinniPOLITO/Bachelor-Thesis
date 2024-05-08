@@ -39,7 +39,7 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
             trial.set_user_attr(key='epochs', value=epoch_index+1)
             logger.log(f"\nTrial Gen n°{trial.generation} - Particle n°{trial.particle_id} - Epoch {epoch_index+1}\n----------------------------------------")
         else:
-            logger.log(f"Training - \nEpoch {epoch_index+1}\n----------------------------------------")
+            logger.log(f"\nEpoch {epoch_index+1}\n----------------------------------------")
         logger.log(f"Intermediate Avg loss:   {val_loss:>0.4f}")
         logger.log(f"Intermediate Accuracy:   {accuracy_score*100:>0.4f}%")
         logger.log(f"Intermediate Precision:  {precision_score*100:>0.4f}%")
@@ -163,7 +163,7 @@ def full_train_loop_weedmapping(max_epochs, train_loader, val_loader, test_loade
             trial.set_user_attr(key='epochs', value=epoch_index+1)
             logger.log(f"\nTrial Gen n°{trial.generation} - Particle n°{trial.particle_id} - Epoch {epoch_index+1}\n----------------------------------------")
         else:
-            logger.log(f"Training - \nEpoch {epoch_index+1}\n----------------------------------------")
+            logger.log(f"\nEpoch {epoch_index+1}\n----------------------------------------")
         logger.log(f"Intermediate Avg loss:   {val_loss:>0.4f}")
         logger.log(f"Intermediate F1:         {f1_score*100:>0.4f}%")
         logger.log(f"Intermediate Precision:  {precision_score*100:>0.4f}%")
