@@ -167,7 +167,7 @@ def full_train_loop_weedmapping(max_epochs, train_loader, val_loader, test_loade
         logger.log(f"Intermediate Avg loss:   {val_loss:>0.4f}")
         logger.log(f"Intermediate F1:         {f1_score*100:>0.4f}%")
         logger.log(f"Intermediate Precision:  {precision_score*100:>0.4f}%")
-        logger.log(f"Intermediate Recall:     {recall_score*100:>0.4f}%")
+        logger.log(f"Intermediate Recall:     {recall_score*100:>0.4f}%\n")
 
         # Intermediate Optimization Score
         optim_score = regularizer(score=f1_score, backbone_str=backbone_str)
@@ -236,7 +236,7 @@ def full_train_loop_weedmapping(max_epochs, train_loader, val_loader, test_loade
         logger.log(f"Hyperparameters: {trial.hyperparameters}")
     logger.log(f"Test F1:         {final_f1_score*100:>0.4f}%")
     logger.log(f"Test Precision:  {final_precision_score*100:>0.4f}%")
-    logger.log(f"Test Recall:     {final_recall_score*100:>0.4f}%")
+    logger.log(f"Test Recall:     {final_recall_score*100:>0.4f}%\n")
 
     # Evaluate Model - Optimization Score
     final_optim_score = regularizer(score=final_f1_score, backbone_str=backbone_str)
