@@ -129,14 +129,14 @@ DYNAMIC_HPs = {
 #%%
 pso_pruner = PSOMedianPruner(n_startup_generations=3, n_warmup_steps=4, interval_steps=4, min_trials_per_step=4)
 #%%
-pso = PSO(objective_fn=objective, hps_bounds=DYNAMIC_HPs, num_particles=20, max_generations=10, pruner=None)
+pso = PSO(objective_fn=objective, hps_bounds=DYNAMIC_HPs, num_particles=32, max_generations=10, pruner=None)
 #%% md
 ### Run Optimization
 #%%
 pso_runner = PSORunner(path_csv=outputs_folder_path_csv,
                        path_txt=outputs_folder_path_txt,
                        session_num=session_num,
-                       n_jobs=10,
+                       n_jobs=-1,
                        metric_to_follow='accuracy', attrs=None)
 #%%
 pso_runner(pso, 'PSO_Optimization')
