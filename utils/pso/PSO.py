@@ -169,7 +169,7 @@ class PSOTrial:
             'score': self.score,
             **{f'user_attrs_{key}': self.user_attrs[key] for key in self.user_attrs},
             'state': self.state,
-            **{f'hp_{key}': self.hyperparameters[key] for key in self.hyperparameters},
+            **{f'hp_{key}': round(self.hyperparameters[key], 3) for key in self.hyperparameters},
             'duration': self.duration,
             'datetime_start': self.datetime_start,
             'datetime_complete': self.datetime_complete,
