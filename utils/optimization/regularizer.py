@@ -16,7 +16,7 @@ class Regularizer:
 
 MODEL_ARCHITECTURES_WEEDMAPPING = {
     'MiT-B0': [[32, 64, 160, 256], [2, 2, 2, 2]],  # [embed_dims, depths]
-    'MiT-B1': [[64, 128, 320, 512], [2, 2, 2, 2]],
+    # 'MiT-B1': [[64, 128, 320, 512], [2, 2, 2, 2]],
 
     'MiT-LD': [[16, 32, 80, 128], [2, 2, 2, 2]],  # Lightweight deep
     'MiT-L0': [[16, 32, 80, 128], [1, 1, 1, 1]],
@@ -26,7 +26,7 @@ MODEL_ARCHITECTURES_WEEDMAPPING = {
 
 
 class Regularizer_WeedMapping:
-    def __init__(self, lambda_widths, max_sum_widths=2048, model_architectures=MODEL_ARCHITECTURES_WEEDMAPPING):
+    def __init__(self, lambda_widths, max_sum_widths=1024, model_architectures=MODEL_ARCHITECTURES_WEEDMAPPING):
         self.lambda_widths = lambda_widths
         self.max_sum_widths = max_sum_widths
         self.model_architectures = model_architectures
