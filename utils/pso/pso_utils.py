@@ -14,7 +14,7 @@ LOSS_FN_BOUNDS = {
 }
 
 OPTIMIZER_BOUNDS = {
-    'SDG': [0, 1],
+    'SGD': [0, 1],
     'Adam': [0, 1],
 }
 
