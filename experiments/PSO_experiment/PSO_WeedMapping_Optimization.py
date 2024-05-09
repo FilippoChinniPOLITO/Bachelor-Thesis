@@ -26,6 +26,8 @@ from utils.optimization.regularizer import Regularizer_WeedMapping
 from utils.misc.device import get_device
 from utils.model.model_utils import get_loss_fn, get_optimizer
 from utils.pso.PSO import PSO, PSOTrial
+from utils.pso.pso_utils import decode_hyperparameter, build_encoded_dict
+from utils.pso.pso_utils import BACKBONE_BOUNDS, OPTIMIZER_BOUNDS
 from utils.pso.pso_runner import PSORunner
 from utils.pso.pso_pruners import PSOMedianPruner
 #%% md
@@ -39,9 +41,6 @@ outputs_folder_path_txt = 'output_files_PSO_WeedMapping/txt'
 ## Load Data
 #%%
 weed_mapping_dataset = load_weedmap_data()
-#%%
-# _tuple = init_data_loaders_weedmapping(weed_mapping_dataset, batch_size_train=6, batch_size_val=12, batch_size_test=12)
-# train_loader, val_loader, test_loader = _tuple
 #%% md
 ## Optuna Optimization
 #%% md
@@ -49,28 +48,34 @@ weed_mapping_dataset = load_weedmap_data()
 #%%
 def objective(trial: PSOTrial, logger: Logger):
     # Define Hyperparameters - Structure HPs
-    encoded_backbones = {key: backbone for key, backbone in
-                         (enumerate(MODEL_ARCHITECTURES_WEEDMAPPING), MODEL_ARCHITECTURES_WEEDMAPPING.keys())}
-    encoded_backbone_val = int(round(trial.hyperparameters['encoded_backbone_val']))
-    backbone_str = encoded_backbones[encoded_backbone_val]
+    backbone_str = decode_hyperparameter(build_encoded_dict(trial, BACKBONE_BOUNDS))
+    # backbone_str = 'MiT-B0'
+
     network_architecture = MODEL_ARCHITECTURES_WEEDMAPPING[backbone_str]
     trial.set_user_attr('network', network_architecture)
 
-    # Define Hyperparameters - Batch Size
+
+    # Define Hyperparameters - Training HPs - Batch Sizes
+    # batch_size_train = round(trial.hyperparameters['batch_size_train'])
+    # batch_size_val = round(trial.hyperparameters['batch_size_val'])
     batch_size_train = 4
     batch_size_val = 4
 
-    # Define Hyperparameters - Training HPs
+    # Define Hyperparameters - Training HPs - Learning Rate
     learning_rate = trial.hyperparameters['learning_rate']
-    optimizer_str = 'Adam'
+    # learning_rate = 1e-3
 
-    # Define Hyperparameters - Loss Function
+    # Define Hyperparameters - Training HPs - Optimizer
+    optimizer_str = decode_hyperparameter(build_encoded_dict(trial, OPTIMIZER_BOUNDS))
+    # optimizer_str = 'Adam'
+
+    # Define Hyperparameters - Training HPs - Loss Function
     # loss_gamma = round(trial.hyperparameters['loss_gamma'])
     # loss_weight = [trial.hyperparameters[f'loss_weight_{i+1}'] for i in range(3)]
     loss_gamma = 2.0
     loss_weight = [0.06, 1.0, 1.7]
 
-    # Define Hyperparameters - Epochs
+    # Define Hyperparameters - Max Epochs
     max_epochs = 30
 
 
@@ -121,12 +126,18 @@ DIRECTION = 'maximize'
 ### Define Study
 #%%
 DYNAMIC_HPs = {
-    'encoded_backbone_val': [0, len(MODEL_ARCHITECTURES_WEEDMAPPING.keys())-1],
+    **BACKBONE_BOUNDS,
+
+    # 'batch_size_train': [4, 8],
+    # 'batch_size_val': [6, 12],
+
+    'learning_rate': [1e-4, 1e-2],
+    **OPTIMIZER_BOUNDS,
+
     # 'loss_gamma': [0.5, 5.0],
     # 'loss_weight_1': [0.1, 2.0],
     # 'loss_weight_2': [0.1, 2.0],
     # 'loss_weight_3': [0.1, 2.0],
-    'learning_rate': [1e-4, 1e-2]
 }
 #%%
 pso_pruner = PSOMedianPruner(n_startup_generations=3, n_warmup_steps=4, interval_steps=4, min_trials_per_step=4)

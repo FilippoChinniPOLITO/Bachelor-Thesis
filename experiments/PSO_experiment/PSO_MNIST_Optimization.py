@@ -5,14 +5,13 @@
 #%% md
 ### Import Dependencies
 #%%
-import numpy as np
-
 import warnings
 warnings.filterwarnings('ignore')
 
 import sys
 sys.path.insert(0, '..')
 sys.path.insert(0, '../..')
+# sys.path.insert(0, '../code/Users/f.chinnicarella/src/root_workspace/Bachelor-Thesis')
 
 from utils.persistency.logger import Logger
 
@@ -26,12 +25,10 @@ from utils.optimization.regularizer import Regularizer
 from utils.misc.device import get_device
 from utils.model.model_utils import get_activation_fn, get_loss_fn, get_optimizer
 from utils.pso.PSO import PSO, PSOTrial
+from utils.pso.pso_utils import decode_hyperparameter, build_encoded_dict
+from utils.pso.pso_utils import ACTIVATION_FN_BOUNDS, LOSS_FN_BOUNDS, OPTIMIZER_BOUNDS
 from utils.pso.pso_runner import PSORunner
 from utils.pso.pso_pruners import PSOMedianPruner
-
-from utils.display_results.display_results import prediction_loop
-from utils.display_results.display_results import display_images
-from utils.persistency.file_name_builder import file_name_builder, folder_exists_check
 #%% md
 ### Init Session
 #%%
@@ -42,37 +39,48 @@ outputs_folder_path_txt = 'output_files_PSO_MNIST/txt'
 #%% md
 ## Load Data
 #%%
-train_dataset, val_dataset, test_dataset = load_MNIST_data('data_MNIST/')
-#%%
-# train_loader = init_data_loader(train_dataset, batch_size=32)
-# val_loader = init_data_loader(val_dateset, batch_size=32)
-# test_loader = init_data_loader(test_dataset, batch_size=32)
+train_dataset, val_dataset, test_dataset = load_MNIST_data('data_pso/')
 #%% md
 ## Optuna Optimization
 #%% md
 ### Define Objective Function
 #%%
 def objective(trial: PSOTrial, logger: Logger):
-    # Define Hyperparameters - Structure HPs
-    activation = 'relu'
+    # Define Hyperparameters - Structure HPs - Activation Function
+    activation = decode_hyperparameter(build_encoded_dict(trial, ACTIVATION_FN_BOUNDS))
+    # activation = 'relu'
+
+    # Define Hyperparameters - Structure HPs - Network Architecture (Depth)
     # num_hidden_layer = round(trial.hyperparameters['num_hidden_layer'])
     num_hidden_layer = 3
 
+    # Define Hyperparameters - Structure HPs - Network Architecture (Width)
     network_architecture = [28 * 28]
     for i in range(num_hidden_layer):
         layer_width = round(trial.hyperparameters[f'hidden_layer_n{i+1}_size'])
-        if layer_width > 8:
+        if layer_width >= 8:
             network_architecture.append(layer_width)
     network_architecture.append(10)
     trial.set_user_attr('network', network_architecture)
 
-    # Define Hyperparameters - Training HPs
-    batch_size = 64
-    learning_rate = trial.hyperparameters['learning_rate']
-    loss_function_str = 'CrossEntropy'
-    optimizer_str = 'Adam'
 
-    # Define Hyperparameters - Epochs
+    # Define Hyperparameters - Training HPs - Batch Size
+    # batch_size = round(trial.hyperparameters['batch_size'])
+    batch_size = 16
+
+    # Define Hyperparameters - Training HPs - Learning Rate
+    learning_rate = trial.hyperparameters['learning_rate']
+    # learning_rate = 1e-3
+
+    # Define Hyperparameters - Training HPs - Loss Function
+    # loss_function_str = decode_hyperparameter(build_encoded_dict(trial, LOSS_FN_BOUNDS))
+    loss_function_str = 'CrossEntropy'
+
+    # Define Hyperparameters - Training HPs - Optimizer
+    optimizer_str = decode_hyperparameter(build_encoded_dict(trial, OPTIMIZER_BOUNDS))
+    # optimizer_str = 'Adam'
+
+    # Define Hyperparameters - Max Epochs
     max_epochs = 30
 
 
@@ -124,6 +132,13 @@ DYNAMIC_HPs = {
     'hidden_layer_n1_size': [0, 128],
     'hidden_layer_n2_size': [0, 128],
     'hidden_layer_n3_size': [0, 128],
+
+    **ACTIVATION_FN_BOUNDS,
+
+    # 'batch_size': [16, 64],
+    # **LOSS_FN_BOUNDS,
+    **OPTIMIZER_BOUNDS,
+
     'learning_rate': [1e-4, 1e-2]
 }
 #%%
@@ -139,4 +154,4 @@ pso_runner = PSORunner(path_csv=outputs_folder_path_csv,
                        n_jobs=-1,
                        metric_to_follow='accuracy', attrs=None)
 #%%
-pso_runner(pso, 'PSO_Optimization')
+pso_runner(pso, 'PSO_Optimization_MNIST')

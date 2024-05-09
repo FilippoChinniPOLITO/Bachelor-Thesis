@@ -25,15 +25,13 @@ from utils.persistency.logger import Logger
 from utils.dataset.build_dataset import load_weedmap_data
 from utils.dataset.build_dataloader import init_data_loaders_weedmapping
 
-from utils.training.train_loop import full_train_loop, full_train_loop_weedmapping
+from utils.training.train_loop import full_train_loop_weedmapping
 from utils.model.model_utils import init_model
 from utils.optimization.early_stopper import EarlyStopper
-from utils.optimization.regularizer import Regularizer, Regularizer_WeedMapping, MODEL_ARCHITECTURES_WEEDMAPPING
+from utils.optimization.regularizer import Regularizer_WeedMapping, MODEL_ARCHITECTURES_WEEDMAPPING
 from utils.misc.device import get_device
-from utils.model.model_utils import get_activation_fn, get_loss_fn, get_optimizer
+from utils.model.model_utils import get_loss_fn, get_optimizer
 from utils.optimization.optuna_runner import OptunaRunner
-from utils.display_results.display_results import prediction_loop
-from utils.display_results.display_results import display_images
 #%% md
 ### Init Session
 #%%
@@ -45,9 +43,6 @@ outputs_folder_path_txt = 'output_files_weed_mapping/txt'
 ## Load Data
 #%%
 weed_mapping_dataset = load_weedmap_data()
-#%%
-# _tuple = init_data_loaders_weedmapping(weed_mapping_dataset, batch_size_train=6, batch_size_val=12, batch_size_test=12)
-# train_loader, val_loader, test_loader = _tuple
 #%% md
 ## Optuna Optimization
 #%% md
@@ -56,24 +51,29 @@ weed_mapping_dataset = load_weedmap_data()
 def objective(trial: Trial, logger: Logger):
     # Define Hyperparameters - Structure HPs
     backbone_str = trial.suggest_categorical('backbone', [s for s in MODEL_ARCHITECTURES_WEEDMAPPING.keys()])
+    # backbone_str = 'MiT-B0'
 
-    # Define Hyperparameters - Batch Sizes
+    # Define Hyperparameters - Training HPs - Batch Sizes
     # batch_size_train = trial.suggest_int('batch_size_train', 4, 8, 2)
     # batch_size_val = trial.suggest_int('batch_size_val', 6, 12, 6)
     batch_size_train = 4
     batch_size_val = 4
 
-    # Define Hyperparameters - Training HPs
+    # Define Hyperparameters - Training HPs - Learning Rate
     learning_rate = trial.suggest_float('learning_rate', 1e-4, 1e-2, log=True)
-    optimizer_str = trial.suggest_categorical('optimizer', ['SGD', 'Adam'])
+    # learning_rate = 1e-3
 
-    # Define Hyperparameters - Loss Function
+    # Define Hyperparameters - Training HPs - Optimizer
+    optimizer_str = trial.suggest_categorical('optimizer', ['SGD', 'Adam'])
+    # optimizer_str = 'Adam'
+
+    # Define Hyperparameters - Training HPs - Loss Function Parameters
     # loss_gamma = trial.suggest_float('loss_gamma', 0.5, 5.0, log=True)
     # loss_weight = [trial.suggest_float(f'loss_weight_{i+1}', 0.1, 2.0, log=True) for i in range(3)]
     loss_gamma = 2.0
     loss_weight = [0.06, 1.0, 1.7]
 
-    # Define Hyperparameters - Epochs
+    # Define Hyperparameters - Max Epochs
     max_epochs = 200
 
 
