@@ -2,16 +2,19 @@ import numpy as np
 from optuna import Study
 from optuna.distributions import BaseDistribution
 from optuna.distributions import IntDistribution, UniformDistribution, CategoricalDistribution, LogUniformDistribution
-from optuna.samplers import BaseSampler, intersection_search_space
+from optuna.samplers import BaseSampler, intersection_search_space, RandomSampler
 from optuna.trial import FrozenTrial, TrialState
 
 from utils.pso.PSO import Particle
 
 
 class PSOSampler(BaseSampler):
-    def __init__(self, num_particles):
+    def __init__(self, num_particles, max_generations, n_startup_trials=8):
         super().__init__()
         self.num_particles = num_particles
+        self.max_generations = max_generations
+        self.n_startup_trials = n_startup_trials
+        self.random_sampler = RandomSampler()   # For the first n_startup_trials
 
         self.max_generations = None
 
@@ -23,8 +26,8 @@ class PSOSampler(BaseSampler):
         self.global_best_position = None
 
     def before_trial(self, study: Study, trial: FrozenTrial):
-        if self.max_generations is None:
-            self.max_generations = len(study.trials) // self.num_particles
+        # if self.max_generations is None:
+        #     self.max_generations = self.n_total_trials // self.num_particles
 
         current_gen = (trial.number // self.num_particles) + 1
         particle_id = (trial.number % self.num_particles) + 1
@@ -36,16 +39,30 @@ class PSOSampler(BaseSampler):
         return intersection_search_space(study)
 
     def sample_relative(self, study, trial, search_space):
+        print(search_space) # TODO: Remove Debugging
+        print(trial.params) # TODO: Remove Debugging
+
+        if search_space == {}:
+            print("1° IF: Search Space is Empty") # TODO: Remove Debugging
+            return {}
+
+        states = (TrialState.COMPLETE, TrialState.PRUNED)
+        trials = study._get_trials(deepcopy=False, states=states, use_cache=True)
+        if len(trials) < self._n_startup_trials:
+            print("2° IF") # TODO: Remove Debugging
+            return {}
+
+        if self.swarm is None:
+            self._init_swarm(search_space)
         return self._sample(study, trial, search_space)
 
     def sample_independent(self, study, trial, param_name, param_distribution):
-        raise NotImplementedError('PSO sampler does not support sample_independent method')
-        pass
+        print("Sample Independent") # TODO: Remove Debugging
+        if trial.number < self.n_startup_trials:
+            return self.random_sampler.sample_independent(study, trial, param_name, param_distribution)
+        raise NotImplementedError('Independent sampling is not supported.')
 
     def _sample(self, study, trial, search_space):
-        if self.swarm is None:
-            self._init_swarm(search_space)
-
         particle = self.swarm[trial.system_attrs.get('Particle')]
 
         hyperparameters = {}
@@ -73,6 +90,8 @@ class PSOSampler(BaseSampler):
                 self.hps_bounds.append(_HPBound(name, distribution))
 
         self.bounds = np.array([[hp.low, hp.high] for hp in self.hps_bounds])
+        print(self.bounds) # TODO: Remove Debugging
+        print(self.bounds.shape) # TODO: Remove Debugging
 
         self.swarm = {i+1: Particle(self.bounds, particle_id=i+1) for i in range(self.num_particles)}
 
