@@ -44,7 +44,7 @@ class PSO:
 
         self.pso_stopper = PSOStopping(tolerance=0.005, patience=5)
 
-        self.swarm = [Particle(self.bounds, particle_id=i) for i in range(self.num_particles)]
+        self.swarm = [Particle(self.bounds, particle_id=i+1) for i in range(self.num_particles)]
         self.global_best_score = -np.inf
         self.global_best_position = None
 
