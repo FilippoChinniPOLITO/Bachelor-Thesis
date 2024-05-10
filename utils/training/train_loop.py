@@ -68,7 +68,7 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
         # Pruning Step
         if is_optuna:
             trial.report(value=early_stopper.get_best_score(), step=epoch_index)
-            if (optim_score < 0) or (trial.should_prune()):
+            if (optim_score < 0) or (trial.should_prune() and trial.study.pruner is not None):
                 trial.set_user_attr(key='accuracy', value=round(accuracy_score, 4))
                 trial.set_user_attr(key='precision', value=round(precision_score, 4))
                 trial.set_user_attr(key='recall', value=round(recall_score, 4))
@@ -192,7 +192,7 @@ def full_train_loop_weedmapping(max_epochs, train_loader, val_loader, test_loade
         # Pruning Step
         if is_optuna:
             trial.report(value=early_stopper.get_best_score(), step=epoch_index)
-            if (optim_score < 0) or (trial.should_prune()):
+            if (optim_score < 0) or (trial.should_prune() and trial.study.pruner is not None):
                 trial.set_user_attr(key='f1', value=round(f1_score, 4))
                 trial.set_user_attr(key='precision', value=round(precision_score, 4))
                 trial.set_user_attr(key='recall', value=round(recall_score, 4))
