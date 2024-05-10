@@ -68,6 +68,7 @@ def objective(trial: PSOTrial, logger: Logger):
     # Define Hyperparameters - Training HPs - Optimizer
     optimizer_str = decode_hyperparameter(build_encoded_dict(trial, OPTIMIZER_BOUNDS))
     # optimizer_str = 'Adam'
+    trial.set_user_attr('optimizer', optimizer_str)
 
     # Define Hyperparameters - Training HPs - Loss Function
     # loss_gamma = round(trial.hyperparameters['loss_gamma'])

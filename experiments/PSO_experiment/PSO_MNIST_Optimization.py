@@ -32,7 +32,7 @@ from utils.pso.pso_pruners import PSOMedianPruner
 #%% md
 ### Init Session
 #%%
-session_num = '004'
+session_num = '005'
 #%%
 outputs_folder_path_csv = 'output_files_PSO_MNIST/csv'
 outputs_folder_path_txt = 'output_files_PSO_MNIST/txt'
@@ -79,6 +79,8 @@ def objective(trial: PSOTrial, logger: Logger):
     # Define Hyperparameters - Training HPs - Optimizer
     optimizer_str = decode_hyperparameter(build_encoded_dict(trial, OPTIMIZER_BOUNDS))
     # optimizer_str = 'Adam'
+
+    trial.set_user_attr('categorical', {activation, loss_function_str, optimizer_str})
 
     # Define Hyperparameters - Max Epochs
     max_epochs = 30
