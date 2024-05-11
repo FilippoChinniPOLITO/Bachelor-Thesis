@@ -31,16 +31,19 @@ from utils.optimization.regularizer import Regularizer
 from utils.misc.device import get_device
 from utils.model.model_utils import get_activation_fn, get_loss_fn, get_optimizer
 from utils.optimization.optuna_runner import OptunaRunner
+from utils.optimization.optuna_study_creator import OptunaStudyCreator
+from utils.pso.pso_sampler import PSOSampler
 from utils.display_results.display_results import prediction_loop
 from utils.display_results.display_results import display_images
 from utils.persistency.file_name_builder import file_name_builder, folder_exists_check
 #%% md
 ### Init Session
 #%%
-session_num = '011'
+session_num = '012'
 #%%
 outputs_folder_path_csv = 'output_files_MNIST/csv'
 outputs_folder_path_txt = 'output_files_MNIST/txt'
+outputs_folder_path_db = 'output_files_MNIST/db'
 #%% md
 ## Load Data
 #%%
@@ -62,7 +65,7 @@ def objective(trial: Trial, logger: Logger):
     # Define Hyperparameters - Structure HPs - Network Architecture (Width)
     network_architecture = [28 * 28]
     for i in range(num_hidden_layer):
-        layer_width = trial.suggest_int(f'hidden_layer_n{i+1}_size', 0, 128, 8)
+        layer_width = trial.suggest_int(f'hidden_layer_n{i+1}_size', 0, 128, step=8)
         if layer_width != 0:
             network_architecture.append(layer_width)
     network_architecture.append(10)
@@ -70,7 +73,7 @@ def objective(trial: Trial, logger: Logger):
 
 
     # Define Hyperparameters - Training HPs - Batch Size
-    # batch_size = trial.suggest_int('batch_size', 16, 64, 16)
+    # batch_size = trial.suggest_int('batch_size', 16, 64, step=16)
     batch_size = 16
 
     # Define Hyperparameters - Training HPs - Learning Rate
@@ -126,7 +129,7 @@ def objective(trial: Trial, logger: Logger):
 #%% md
 #### Optuna Constants - Study Parameters
 #%%
-ATTRS = ('number', 'value', 'user_attrs', 'state', 'params', 'duration', 'datetime_start', 'datetime_complete')
+ATTRS = ('number', 'system_attrs', 'value', 'user_attrs', 'state', 'params', 'duration', 'datetime_start', 'datetime_complete')
 #%%
 DIRECTION = 'maximize'
 #%%
@@ -138,25 +141,39 @@ optuna_runner = OptunaRunner(objective_fn=objective,
                              session_num=session_num,
                              metric_to_follow='accuracy',
                              attrs=ATTRS)
+#%%
+optuna_study_creator = OptunaStudyCreator(path_db=outputs_folder_path_db, session_num=session_num)
 #%% md
 #### Optuna Constants - Samplers
 #%%
 RandomSampler = optuna.samplers.RandomSampler()
 TPESampler = optuna.samplers.TPESampler()
+PSOSampler = PSOSampler(num_particles=32, max_generations=8)
 #%% md
 #### Optuna Constants - Pruners
 #%%
-MedianPruner = optuna.pruners.MedianPruner(n_startup_trials=0, n_warmup_steps=1, interval_steps=2, n_min_trials=4)
+MedianPruner = optuna.pruners.MedianPruner(n_startup_trials=0, n_warmup_steps=4, interval_steps=5, n_min_trials=4)
 HyperbandPruner = optuna.pruners.HyperbandPruner(min_resource=3, max_resource=30, reduction_factor=3, bootstrap_count=6)
 #%% md
 ### Run Optimizations
 #%% md
 #### Random Sampler
 #%%
-study_Random = optuna.create_study(direction=DIRECTION, sampler=RandomSampler, pruner=None)
-optuna_runner(study_Random, 'Random_Sampler')
+study_name_Random = 'Random_Sampler'
+study_Random = optuna_study_creator(study_name=study_name_Random, storage=True, direction=DIRECTION,
+                                    sampler=RandomSampler, pruner=None)
+optuna_runner(study_Random, study_name_Random)
 #%% md
 #### TPE Sampler
 #%%
-study_TPE = optuna.create_study(direction=DIRECTION, sampler=TPESampler, pruner=None)
-optuna_runner(study_TPE, 'TPE_Sampler')
+study_name_TPE = 'TPE_Sampler'
+study_TPE = optuna_study_creator(study_name=study_name_TPE, storage=True, direction=DIRECTION,
+                                 sampler=TPESampler, pruner=None)
+optuna_runner(study_TPE, study_name_TPE)
+#%% md
+#### PSO Sampler
+#%%
+study_name_PSO = 'PSO_Sampler'
+study_PSO = optuna_study_creator(study_name=study_name_PSO, storage=False, direction=DIRECTION,
+                                 sampler=PSOSampler, pruner=None)
+optuna_runner(study_PSO, study_name_PSO)
