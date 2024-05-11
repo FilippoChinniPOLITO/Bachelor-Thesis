@@ -1,4 +1,5 @@
 import optuna
+from optuna.storages import RDBStorage
 
 from utils.persistency.file_name_builder import folder_exists_check, file_name_builder
 
@@ -12,10 +13,14 @@ class OptunaStudyCreator:
         folder_exists_check(self.path_db, self.session_num, f'storage_{study_name}')
         db_file = file_name_builder(self.path_db, self.session_num, f'storage_{study_name}', 'db')
 
-        storage_url = f'sqlite:///{db_file}' if storage else None
+        if storage:
+            storage_url = f'sqlite:///{db_file}'
+            storage_obj = RDBStorage(url=storage_url, engine_kwargs={"connect_args": {"timeout": 10}})
+        else:
+            storage_obj = None
 
         return optuna.create_study(study_name=study_name,
-                                   storage=storage_url,
+                                   storage=storage_obj,
                                    direction=direction,
                                    sampler=sampler,
                                    pruner=pruner)
