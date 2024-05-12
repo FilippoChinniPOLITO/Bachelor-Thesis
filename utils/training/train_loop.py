@@ -3,7 +3,7 @@ from torch import cuda
 from optuna import Trial
 
 from experiments.PSO_experiment.backend.PSO import PSOTrial
-from utils.training.train_step import train_step, train_step_weedmapping
+from utils.training.train_step import train_step
 from utils.training.eval_step import eval_step
 from utils.training.eval_step import eval_step_weedmapping
 
@@ -149,7 +149,7 @@ def full_train_loop_weedmapping(max_epochs, train_loader, val_loader, test_loade
     for epoch_index in range(max_epochs):
 
         # Training Step
-        train_step_weedmapping(train_loader, model, loss_fn, optimizer)
+        train_step(train_loader, model, loss_fn, optimizer)
 
         # Intermediate Evaluation Step
         _ = eval_step_weedmapping(val_loader, model, loss_fn)
