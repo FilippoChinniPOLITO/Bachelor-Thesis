@@ -31,8 +31,9 @@ class Regularizer_WeedMapping:
         self.max_sum_widths = max_sum_widths
         self.model_architectures = model_architectures
 
-    def __call__(self, score, backbone_str):
-        products_arr = np.multiply(self.model_architectures[backbone_str][0], self.model_architectures[backbone_str][1])
+    def __call__(self, score, network_architecture):
+        products_arr = np.multiply(self.model_architectures[network_architecture][0],
+                                   self.model_architectures[network_architecture][1])
         complexity_widths_factor = sum(products_arr)
 
         normalized_complexity_widths_factor = (complexity_widths_factor / self.max_sum_widths)

@@ -18,7 +18,7 @@ from utils.persistency.logger import Logger
 from utils.dataset.build_dataset import load_weedmap_data
 from utils.dataset.build_dataloader import init_data_loaders_weedmapping
 
-from utils.training.train_loop import full_train_loop_weedmapping
+from backend.pso_train_loop import pso_full_train_loop
 from utils.model.model_utils import init_model
 from utils.optimization.early_stopper import EarlyStopper
 from utils.optimization.regularizer import MODEL_ARCHITECTURES_WEEDMAPPING
@@ -103,18 +103,16 @@ def objective(trial: PSOTrial, logger: Logger):
     # Init Early Stopper
     early_stopper = EarlyStopper(patience=5, mode="maximize")
 
-
     # Perform Training
-    optim_score = full_train_loop_weedmapping(max_epochs=max_epochs,
-                                              train_loader=train_loader, val_loader=val_loader, test_loader=test_loader,
-                                              model=model,
-                                              backbone_str=backbone_str,
-                                              loss_fn=loss_fn,
-                                              optimizer=optimizer,
-                                              regularizer=regularizer,
-                                              early_stopper=early_stopper,
-                                              logger=logger,
-                                              trial=trial)
+    optim_score = pso_full_train_loop(max_epochs=max_epochs,
+                                      train_loader=train_loader, val_loader=val_loader, test_loader=test_loader,
+                                      model=model,
+                                      loss_fn=loss_fn,
+                                      optimizer=optimizer,
+                                      regularizer=regularizer,
+                                      early_stopper=early_stopper,
+                                      logger=logger,
+                                      trial=trial)
 
     return optim_score
 #%% md

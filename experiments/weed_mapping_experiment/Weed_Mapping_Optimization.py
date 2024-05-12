@@ -25,20 +25,25 @@ from utils.persistency.logger import Logger
 from utils.dataset.build_dataset import load_weedmap_data
 from utils.dataset.build_dataloader import init_data_loaders_weedmapping
 
-from utils.training.train_loop import full_train_loop_weedmapping
+from utils.training.train_loop import full_train_loop
 from utils.model.model_utils import init_model
 from utils.optimization.early_stopper import EarlyStopper
 from utils.optimization.regularizer import Regularizer_WeedMapping, MODEL_ARCHITECTURES_WEEDMAPPING
 from utils.misc.device import get_device
 from utils.model.model_utils import get_loss_fn, get_optimizer
 from utils.optuna_utils.optuna_runner import OptunaRunner
+from utils.optuna_utils.optuna_study_creator import OptunaStudyCreator
+from utils.optuna_utils.pso_sampler import PSOSampler
 #%% md
 ### Init Session
 #%%
-session_num = '000'
+EXPERIMENT_NAME = 'Weed_Mapping_Optuna_Optimization'
 #%%
-outputs_folder_path_csv = 'output_files_weed_mapping/csv'
-outputs_folder_path_txt = 'output_files_weed_mapping/txt'
+SESSION_NUM = '000'
+#%%
+OUTPUTS_FOLDER_PATH_CSV = 'output_files_weed_mapping/csv'
+OUTPUTS_FOLDER_PATH_TXT = 'output_files_weed_mapping/txt'
+OUTPUTS_FOLDER_PATH_DB = 'output_files_weed_mapping/db'
 #%% md
 ## Load Data
 #%%
@@ -102,38 +107,42 @@ def objective(trial: Trial, logger: Logger):
 
 
     # Perform Training
-    optim_score = full_train_loop_weedmapping(max_epochs=max_epochs,
-                                              train_loader=train_loader, val_loader=val_loader, test_loader=test_loader,
-                                              model=model,
-                                              backbone_str=backbone_str,
-                                              loss_fn=loss_fn,
-                                              optimizer=optimizer,
-                                              regularizer=regularizer,
-                                              early_stopper=early_stopper,
-                                              logger=logger,
-                                              trial=trial)
+    optim_score = full_train_loop(max_epochs=max_epochs,
+                                  train_loader=train_loader, val_loader=val_loader, test_loader=test_loader,
+                                  model=model,
+                                  loss_fn=loss_fn,
+                                  optimizer=optimizer,
+                                  regularizer=regularizer,
+                                  early_stopper=early_stopper,
+                                  logger=logger,
+                                  trial=trial)
 
     return optim_score
 #%% md
 #### Optuna Constants - Study Parameters
 #%%
-ATTRS = ('number', 'value', 'user_attrs', 'state', 'params', 'duration', 'datetime_start', 'datetime_complete')
+ATTRS = ('number', 'system_attrs', 'value', 'user_attrs', 'state', 'params', 'duration', 'datetime_start', 'datetime_complete')
 #%%
 DIRECTION = 'maximize'
 #%%
 optuna_runner = OptunaRunner(objective_fn=objective,
                              n_jobs=2,
                              n_trials=64,
-                             path_csv=outputs_folder_path_csv,
-                             path_txt=outputs_folder_path_txt,
-                             session_num=session_num,
+                             path_csv=OUTPUTS_FOLDER_PATH_CSV,
+                             path_txt=OUTPUTS_FOLDER_PATH_TXT,
+                             session_num=SESSION_NUM,
                              metric_to_follow='f1',
                              attrs=ATTRS)
+#%%
+optuna_study_creator = OptunaStudyCreator(experiment_name=EXPERIMENT_NAME,
+                                          path_db=OUTPUTS_FOLDER_PATH_DB,
+                                          session_num=SESSION_NUM)
 #%% md
 #### Optuna Constants - Samplers
 #%%
 RandomSampler = optuna.samplers.RandomSampler()
 TPESampler = optuna.samplers.TPESampler()
+PSOSampler = PSOSampler(num_particles=8, max_generations=8)
 #%% md
 #### Optuna Constants - Pruners
 #%%
@@ -144,10 +153,21 @@ HyperbandPruner = optuna.pruners.HyperbandPruner(min_resource=10, max_resource=2
 #%% md
 #### Random Sampler
 #%%
-study_Random = optuna.create_study(direction=DIRECTION, sampler=RandomSampler, pruner=MedianPruner)
-optuna_runner(study_Random, 'Random_Sampler')
+study_name_Random = 'Random_Sampler'
+study_Random = optuna_study_creator(study_name=study_name_Random, storage=True, direction=DIRECTION,
+                                    sampler=RandomSampler, pruner=None)
+optuna_runner(study_Random, study_name_Random)
 #%% md
 #### TPE Sampler
 #%%
-study_TPE = optuna.create_study(direction=DIRECTION, sampler=TPESampler, pruner=HyperbandPruner)
-optuna_runner(study_TPE, 'TPE_Sampler')
+study_name_TPE = 'TPE_Sampler'
+study_TPE = optuna_study_creator(study_name=study_name_TPE, storage=True, direction=DIRECTION,
+                                 sampler=TPESampler, pruner=None)
+optuna_runner(study_TPE, study_name_TPE)
+#%% md
+#### PSO Sampler
+#%%
+study_name_PSO = 'PSO_Sampler'
+study_PSO = optuna_study_creator(study_name=study_name_PSO, storage=False, direction=DIRECTION,
+                                 sampler=PSOSampler, pruner=None)
+optuna_runner(study_PSO, study_name_PSO)

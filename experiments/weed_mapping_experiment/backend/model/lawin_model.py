@@ -13,6 +13,7 @@ class BaseLawin(BaseModel):
         num_classes = get_param(arch_params, "num_classes")
         input_channels = get_param(arch_params, "input_channels", 3)
         backbone = get_param(arch_params, "backbone", 'MiT-B0')
+        self.backbone_str = backbone  # NOT FROM THE ORIGINAL CODE - Added for external use
         backbone_pretrained = get_param(arch_params, "backbone_pretrained", False)
         pretrained_channels = get_param(arch_params, "main_pretrained", None)
         super().__init__(backbone, input_channels, backbone_pretrained)
@@ -36,6 +37,9 @@ class BaseLawin(BaseModel):
 class Lawin(BaseLawin):
     def __init__(self, arch_params) -> None:
         super().__init__(arch_params, LawinHead)
+
+    def get_network_architecture(self):  # NOT FROM THE ORIGINAL CODE - Added for external use
+        return self.backbone_str  # NOT FROM THE ORIGINAL CODE - Added for external use
 
 
 class LawinHead(nn.Module):

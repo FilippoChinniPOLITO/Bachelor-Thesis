@@ -2,23 +2,22 @@ import optuna
 from torch import cuda
 from optuna import Trial
 
-from experiments.PSO_experiment.backend.PSO import PSOTrial
+from experiments.weed_mapping_experiment.backend.model.lawin_model import Lawin
 from utils.training.train_step import train_step
 from utils.training.eval_step import eval_step
-from utils.training.eval_step import eval_step_weedmapping
 
 
-def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, loss_fn, optimizer, early_stopper, regularizer, logger, trial=None):
-    # Init for Missing Parameters
+def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, loss_fn, optimizer, early_stopper, regularizer, logger, trial: Trial = None):
+    # Init Special Parameters
     is_optuna = False
-    is_pso = False
     if trial is not None:
-        if isinstance(trial, Trial):
-            is_optuna = True
-        elif isinstance(trial, PSOTrial):
-            is_pso = True
+        is_optuna = True
     if regularizer is None:
-        regularizer = mock_regularizer
+        regularizer = lambda **kwargs: kwargs.get('score', None)
+
+    # Get Metric to Follow
+    metric_index = get_metric_to_follow(model)
+
 
     # Train Model
     for epoch_index in range(max_epochs):
@@ -26,106 +25,46 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
         # Training Step
         train_step(train_loader, model, loss_fn, optimizer)
 
-        # Intermediate Evaluation Step
-        _ = eval_step(val_loader, model, loss_fn)
-        val_loss = _[0]
-        accuracy_score, precision_score, recall_score, f1_score = (i.item() for i in _[1:])
-
-        # Print Metrics
-        if is_optuna:
-            trial.set_user_attr(key='epochs', value=epoch_index+1)
-            logger.log(f"\nTrial n°{trial.number} - Epoch {epoch_index+1}\n----------------------------------------")
-        elif is_pso:
-            trial.set_user_attr(key='epochs', value=epoch_index+1)
-            logger.log(f"\nTrial Gen n°{trial.generation} - Particle n°{trial.particle_id} - Epoch {epoch_index+1}\n----------------------------------------")
-        else:
-            logger.log(f"\nEpoch {epoch_index+1}\n----------------------------------------")
-        logger.log(f"Intermediate Avg loss:   {val_loss:>0.4f}")
-        logger.log(f"Intermediate Accuracy:   {accuracy_score*100:>0.4f}%")
-        logger.log(f"Intermediate Precision:  {precision_score*100:>0.4f}%")
-        logger.log(f"Intermediate Recall:     {recall_score*100:>0.4f}%")
-        logger.log(f"Intermediate F1:         {f1_score*100:>0.4f}%\n")
+        # Evaluation Step (Intermediate)
+        val_loss, val_metrics = eval_step(val_loader, model, loss_fn)
+        val_metrics_processed = [i.item() for i in val_metrics]
 
         # Intermediate Optimization Score
-        optim_score = regularizer(score=accuracy_score, network_architecture=model.get_network_architecture())
-        if is_optuna:
-            logger.log(f'Intermediate Optimization Score (Trial: n°{trial.number}): {optim_score*100:>0.3f}%\n')
-        elif is_pso:
-            logger.log(f'Intermediate Optimization Score (Gen n°{trial.generation} - Particle: n°{trial.particle_id}): {optim_score*100:>0.3f}%\n')
-        else:
-            logger.log(f'Intermediate Optimization Score: {optim_score*100:>0.3f}%\n')
+        optim_score = regularizer(score=val_metrics_processed[metric_index],
+                                  network_architecture=model.get_network_architecture())
+
+        # Print Intermediate Evaluation
+        intermediate_reporting(val_loss=val_loss, val_metrics=val_metrics_processed,
+                               intermediate_score=optim_score, epoch_index=epoch_index,
+                               logger=logger, is_optuna=is_optuna, trial=trial)
 
         # Check Early-Stopping Step
         if early_stopper(score=optim_score, model=model):
-            if is_optuna:
-                logger.log(f"Trial n°{trial.number} Early Stopped!")
-            elif is_pso:
-                logger.log(f"Trial Gen n°{trial.generation} - Particle n°{trial.particle_id} Early Stopped!")
-            else:
-                logger.log(f"Training Early Stopped!")
+            early_stopping_reporting(logger=logger, is_optuna=is_optuna, trial=trial)
             break
 
         # Pruning Step
-        if is_optuna:
-            trial.report(value=early_stopper.get_best_score(), step=epoch_index)
-            if (optim_score < 0) or (trial.should_prune() and (not isinstance(trial.study.pruner, optuna.pruners.MedianPruner))):
-                trial.set_user_attr(key='accuracy', value=round(accuracy_score, 4))
-                trial.set_user_attr(key='precision', value=round(precision_score, 4))
-                trial.set_user_attr(key='recall', value=round(recall_score, 4))
-                trial.set_user_attr(key='f1', value=round(f1_score, 4))
-                logger.log(f"Trial n°{trial.number} Pruned!\n\n")
-                cuda.empty_cache()
-                raise optuna.TrialPruned()
-        if is_pso:
-            trial.report(score=early_stopper.get_best_score(), step=epoch_index)
-            if (optim_score < 0) or (trial.should_prune()):
-                trial.set_user_attr(key='accuracy', value=round(accuracy_score, 4))
-                trial.set_user_attr(key='precision', value=round(precision_score, 4))
-                trial.set_user_attr(key='recall', value=round(recall_score, 4))
-                trial.set_user_attr(key='f1', value=round(f1_score, 4))
-                logger.log(f"Trial Gen n°{trial.generation} - Particle n°{trial.particle_id} Pruned!\n\n")
-                cuda.empty_cache()
-                trial.prune_trial()
-                return early_stopper.get_best_score()
+        pruning_step(val_metrics=val_metrics_processed,
+                     intermediate_score=optim_score, epoch_index=epoch_index,
+                     logger=logger, is_optuna=is_optuna, trial=trial)
 
-    if is_optuna:
-        logger.log(f"Training n°{trial.number} Complete!\n\n")
-    elif is_pso:
-        logger.log(f"Training Gen n°{trial.generation} - Particle n°{trial.particle_id} Complete!\n\n")
-    else:
-        logger.log(f"Training Complete!\n\n")
-
+    # Complete Training
+    completing_reporting(logger=logger, is_optuna=is_optuna, trial=trial)
     model.load_state_dict(early_stopper.get_best_model_params())
 
 
-    # Evaluate Model - Evaluation Metrics
-    _ = eval_step(test_loader, model, loss_fn)
-    final_accuracy_score, final_precision_score, final_recall_score, final_f1_score = (i.item() for i in _[1:])
-    if is_optuna:
-        trial.set_user_attr(key='accuracy', value=round(final_accuracy_score, 4))
-        trial.set_user_attr(key='precision', value=round(final_precision_score, 4))
-        trial.set_user_attr(key='recall', value=round(final_recall_score, 4))
-        trial.set_user_attr(key='f1', value=round(final_f1_score, 4))
-        logger.log(f"\nReport Finished Trial:\n----------------------------------------")
-        logger.log(f"Trial number: {trial.number}")
-        logger.log(f"Hyperparameters: {trial.params}")
-    elif is_pso:
-        trial.set_user_attr(key='accuracy', value=round(final_accuracy_score, 4))
-        trial.set_user_attr(key='precision', value=round(final_precision_score, 4))
-        trial.set_user_attr(key='recall', value=round(final_recall_score, 4))
-        trial.set_user_attr(key='f1', value=round(final_f1_score, 4))
-        logger.log(f"\nReport Finished Trial:\n----------------------------------------")
-        logger.log(f"Trial: Gen n°{trial.generation} - Particle n°{trial.particle_id}")
-        logger.log(f"Hyperparameters: {trial.hyperparameters}")
-    logger.log(f"Test Accuracy:   {final_accuracy_score*100:>0.4f}%")
-    logger.log(f"Test Precision:  {final_precision_score*100:>0.4f}%")
-    logger.log(f"Test Recall:     {final_recall_score*100:>0.4f}%")
-    logger.log(f"Test F1:         {final_f1_score*100:>0.4f}%\n")
+    # Evaluate Model (TestSet) - Evaluation Metrics
+    test_loss, test_metrics = eval_step(test_loader, model, loss_fn)
+    test_metrics_processed = [i.item() for i in test_metrics]
 
     # Evaluate Model - Optimization Score
-    final_optim_score = regularizer(score=final_accuracy_score, network_architecture=model.get_network_architecture())
-    logger.log(f'Optimization Score:  {final_optim_score*100:>0.5f}%\n\n')
+    final_optim_score = regularizer(score=test_metrics_processed[metric_index],
+                                    network_architecture=model.get_network_architecture())
 
+    # Print Final Evaluation
+    final_evaluation_reporting(test_metrics=test_metrics_processed,
+                               final_score=final_optim_score,
+                               logger=logger, is_optuna=is_optuna, trial=trial)
 
     # Empty Cache
     cuda.empty_cache()
@@ -133,122 +72,111 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
     return final_optim_score
 
 
-def full_train_loop_weedmapping(max_epochs, train_loader, val_loader, test_loader, model, backbone_str, loss_fn, optimizer, early_stopper, regularizer, logger, trial=None):
-    # Init for Missing Parameters
-    is_optuna = False
+def get_pso_attributes(trial):
+    if trial is None:
+        return False, None, None
+
     is_pso = False
-    if trial is not None:
-        if isinstance(trial, Trial):
-            is_optuna = True
-        elif isinstance(trial, PSOTrial):
-            is_pso = True
-    if regularizer is None:
-        regularizer = mock_regularizer
+    generation = None
+    particle = None
+    if ('generation' in trial.system_attrs.keys()) and ('particle' in trial.system_attrs.keys()):
+        is_pso = True
+        generation = trial.system_attrs['generation']
+        particle = trial.system_attrs['particle']
 
-    # Train Model
-    for epoch_index in range(max_epochs):
+    return is_pso, generation, particle
 
-        # Training Step
-        train_step(train_loader, model, loss_fn, optimizer)
 
-        # Intermediate Evaluation Step
-        _ = eval_step_weedmapping(val_loader, model, loss_fn)
-        val_loss = _[0]
-        f1_score, precision_score, recall_score = (i.item() for i in _[1:])
+def intermediate_reporting(val_loss, val_metrics, intermediate_score, epoch_index, logger, is_optuna=False, trial=None):
+    is_pso, generation, particle = get_pso_attributes(trial)
+    optuna_addition_1 = ''
+    optuna_addition_2 = ''
 
-        # Print Metrics
-        if is_optuna:
-            trial.set_user_attr(key='epochs', value=epoch_index+1)
-            logger.log(f"\nTrial n°{trial.number} - Epoch {epoch_index+1}\n----------------------------------------")
-        elif is_pso:
-            trial.set_user_attr(key='epochs', value=epoch_index+1)
-            logger.log(f"\nTrial Gen n°{trial.generation} - Particle n°{trial.particle_id} - Epoch {epoch_index+1}\n----------------------------------------")
-        else:
-            logger.log(f"\nEpoch {epoch_index+1}\n----------------------------------------")
-        logger.log(f"Intermediate Avg loss:   {val_loss:>0.4f}")
-        logger.log(f"Intermediate F1:         {f1_score*100:>0.4f}%")
-        logger.log(f"Intermediate Precision:  {precision_score*100:>0.4f}%")
-        logger.log(f"Intermediate Recall:     {recall_score*100:>0.4f}%\n")
+    if is_pso:
+        trial.set_user_attr(key='epochs', value=epoch_index+1)
+        optuna_addition_1 = f"Trial n°{trial.number} - Gen n°{generation} - Particle n°{particle} - "
+        optuna_addition_2 = f" (Gen n°{generation} - Particle n°{particle})"
+    elif is_optuna:
+        trial.set_user_attr(key='epochs', value=epoch_index+1)
+        optuna_addition_1 = f"Trial n°{trial.number} - "
+        optuna_addition_2 = f" (Trial n°{trial.number})"
 
-        # Intermediate Optimization Score
-        optim_score = regularizer(score=f1_score, backbone_str=backbone_str)
-        if is_optuna:
-            logger.log(f'Intermediate Optimization Score (Trial: n°{trial.number}): {optim_score*100:>0.3f}%\n')
-        elif is_pso:
-            logger.log(f'Intermediate Optimization Score (Gen n°{trial.generation} - Particle: n°{trial.particle_id}): {optim_score*100:>0.3f}%\n')
-        else:
-            logger.log(f'Intermediate Optimization Score: {optim_score*100:>0.3f}%\n')
+    logger.log(f"\n{optuna_addition_1}Epoch {epoch_index+1}\n----------------------------------------")
+    logger.log(f"Intermediate Avg loss:   {val_loss:>0.4f}")
+    logger.log(f"Intermediate Accuracy:   {val_metrics[0]*100:>0.4f}%")
+    logger.log(f"Intermediate Precision:  {val_metrics[1]*100:>0.4f}%")
+    logger.log(f"Intermediate Recall:     {val_metrics[2]*100:>0.4f}%")
+    logger.log(f"Intermediate F1:         {val_metrics[3]*100:>0.4f}%\n")
 
-        # Check Early-Stopping Step
-        if early_stopper(score=optim_score, model=model):
-            if is_optuna:
-                logger.log(f"Trial n°{trial.number} Early Stopped!")
-            elif is_pso:
-                logger.log(f"Trial Gen n°{trial.generation} - Particle n°{trial.particle_id} Early Stopped!")
-            else:
-                logger.log(f"Training Early Stopped!")
-            break
+    logger.log(f'Intermediate Optimization Score{optuna_addition_2}: {intermediate_score*100:>0.4f}%\n')
 
-        # Pruning Step
-        if is_optuna:
-            trial.report(value=early_stopper.get_best_score(), step=epoch_index)
-            if (optim_score < 0) or (trial.should_prune() and (not isinstance(trial.study.pruner, optuna.pruners.MedianPruner))):
-                trial.set_user_attr(key='f1', value=round(f1_score, 4))
-                trial.set_user_attr(key='precision', value=round(precision_score, 4))
-                trial.set_user_attr(key='recall', value=round(recall_score, 4))
-                logger.log(f"Trial n°{trial.number} Pruned!\n\n")
-                cuda.empty_cache()
-                raise optuna.TrialPruned()
-        if is_pso:
-            trial.report(score=early_stopper.get_best_score(), step=epoch_index)
-            if (optim_score < 0) or (trial.should_prune()):
-                trial.set_user_attr(key='f1', value=round(f1_score, 4))
-                trial.set_user_attr(key='precision', value=round(precision_score, 4))
-                trial.set_user_attr(key='recall', value=round(recall_score, 4))
-                logger.log(f"Trial Gen n°{trial.generation} - Particle n°{trial.particle_id} Pruned!\n\n")
-                cuda.empty_cache()
-                return early_stopper.get_best_score()
+
+def early_stopping_reporting(logger, is_optuna=False, trial=None):
+    is_pso, generation, particle = get_pso_attributes(trial)
+    if is_pso:
+        logger.log(f"Trial n°{trial.number} - Gen n°{generation} - Particle n°{particle} Early Stopped!")
+    elif is_optuna:
+        logger.log(f"Trial n°{trial.number} Early Stopped!")
+    else:
+        logger.log(f"Training Early Stopped!")
+
+
+def pruning_step(val_metrics, intermediate_score, epoch_index, logger, is_optuna=False, trial=None):
+    pso_addition = ''
+    is_pso, generation, particle = get_pso_attributes(trial)
+
+    if is_pso:
+        pso_addition = f" - Gen n°{generation} - Particle n°{particle}"
 
     if is_optuna:
+        trial.report(value=intermediate_score, step=epoch_index)
+        if (intermediate_score < 0) or (trial.should_prune()):
+            trial.set_user_attr(key='accuracy', value=round(val_metrics[0], 4))
+            trial.set_user_attr(key='precision', value=round(val_metrics[1], 4))
+            trial.set_user_attr(key='recall', value=round(val_metrics[2], 4))
+            trial.set_user_attr(key='f1', value=round(val_metrics[3], 4))
+
+            logger.log(f"Trial n°{trial.number}{pso_addition} Pruned!\n\n")
+
+            cuda.empty_cache()
+            raise optuna.TrialPruned()
+
+
+def completing_reporting(logger, is_optuna=False, trial=None):
+    is_pso, generation, particle = get_pso_attributes(trial)
+    if is_pso:
+        logger.log(f"Training Gen n°{generation} - Particle n°{particle} Complete!\n\n")
+    elif is_optuna:
         logger.log(f"Training n°{trial.number} Complete!\n\n")
-    elif is_pso:
-        logger.log(f"Training Gen n°{trial.generation} - Particle n°{trial.particle_id} Complete!\n\n")
     else:
         logger.log(f"Training Complete!\n\n")
 
-    model.load_state_dict(early_stopper.get_best_model_params())
 
-    # Evaluate Model - Evaluation Metrics
-    _ = eval_step_weedmapping(test_loader, model, loss_fn)
-    final_f1_score, final_precision_score, final_recall_score = (i.item() for i in _[1:])
+def final_evaluation_reporting(test_metrics, final_score, logger, is_optuna=False, trial=None):
+    pso_addition = ''
+    is_pso, generation, particle = get_pso_attributes(trial)
+
+    if is_pso:
+        pso_addition = f" - Gen n°{generation} - Particle n°{particle}"
+
     if is_optuna:
-        trial.set_user_attr(key='f1', value=round(final_f1_score, 4))
-        trial.set_user_attr(key='precision', value=round(final_precision_score, 4))
-        trial.set_user_attr(key='recall', value=round(final_recall_score, 4))
+        trial.set_user_attr(key='accuracy', value=round(test_metrics[0], 4))
+        trial.set_user_attr(key='precision', value=round(test_metrics[1], 4))
+        trial.set_user_attr(key='recall', value=round(test_metrics[2], 4))
+        trial.set_user_attr(key='f1', value=round(test_metrics[3], 4))
         logger.log(f"\nReport Finished Trial:\n----------------------------------------")
-        logger.log(f"Trial number: {trial.number}")
-        logger.log(f"Hyperparameters: {trial.params}")
-    elif is_pso:
-        trial.set_user_attr(key='f1', value=round(final_f1_score, 4))
-        trial.set_user_attr(key='precision', value=round(final_precision_score, 4))
-        trial.set_user_attr(key='recall', value=round(final_recall_score, 4))
-        logger.log(f"\nReport Finished Trial:\n----------------------------------------")
-        logger.log(f"Trial: Gen n°{trial.generation} - Particle n°{trial.particle_id}")
-        logger.log(f"Hyperparameters: {trial.hyperparameters}")
-    logger.log(f"Test F1:         {final_f1_score*100:>0.4f}%")
-    logger.log(f"Test Precision:  {final_precision_score*100:>0.4f}%")
-    logger.log(f"Test Recall:     {final_recall_score*100:>0.4f}%\n")
+        logger.log(f"Trial n°{trial.number}{pso_addition}")
+        logger.log(f"Hyperparameters: {trial.params}\n")
 
-    # Evaluate Model - Optimization Score
-    final_optim_score = regularizer(score=final_f1_score, backbone_str=backbone_str)
-    logger.log(f'Optimization Score:  {final_optim_score*100:>0.5f}%\n\n')
+    logger.log(f"Test Accuracy:   {test_metrics[0]*100:>0.4f}%")
+    logger.log(f"Test Precision:  {test_metrics[1]*100:>0.4f}%")
+    logger.log(f"Test Recall:     {test_metrics[2]*100:>0.4f}%")
+    logger.log(f"Test F1:         {test_metrics[3]*100:>0.4f}%\n")
+
+    logger.log(f'Optimization Score:  {final_score*100:>0.5f}%\n\n')
 
 
-    # Empty Cache
-    cuda.empty_cache()
-
-    return final_optim_score
-
-
-def mock_regularizer(**kwargs):
-    return kwargs.get('score', None)
+def get_metric_to_follow(model):
+    if isinstance(model, Lawin):
+        return 3
+    return 0
