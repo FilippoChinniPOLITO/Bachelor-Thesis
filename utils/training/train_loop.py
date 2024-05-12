@@ -97,7 +97,7 @@ def intermediate_reporting(val_loss, val_metrics, intermediate_score, epoch_inde
     if is_pso:
         trial.set_user_attr(key='epochs', value=epoch_index+1)
         optuna_addition_1 = f"Trial n°{trial.number} - Gen n°{generation} - Particle n°{particle} - "
-        optuna_addition_2 = f" (Gen n°{generation} - Particle n°{particle})"
+        optuna_addition_2 = f" (Trial n°{trial.number})"
     elif is_optuna:
         trial.set_user_attr(key='epochs', value=epoch_index+1)
         optuna_addition_1 = f"Trial n°{trial.number} - "
@@ -116,7 +116,7 @@ def intermediate_reporting(val_loss, val_metrics, intermediate_score, epoch_inde
 def early_stopping_reporting(logger, is_optuna=False, trial=None, pso_attributes=None):
     is_pso, generation, particle = pso_attributes
     if is_pso:
-        logger.log(f"Trial n°{trial.number} - Gen n°{generation} - Particle n°{particle} Early Stopped!")
+        logger.log(f"Trial n°{trial.number} (Gen n°{generation} - Particle n°{particle}) Early Stopped!")
     elif is_optuna:
         logger.log(f"Trial n°{trial.number} Early Stopped!")
     else:
@@ -128,7 +128,7 @@ def pruning_step(val_metrics, intermediate_score, epoch_index, logger, is_optuna
     is_pso, generation, particle = pso_attributes
 
     if is_pso:
-        pso_addition = f" - Gen n°{generation} - Particle n°{particle}"
+        pso_addition = f" (Gen n°{generation} - Particle n°{particle})"
 
     if is_optuna:
         trial.report(value=intermediate_score, step=epoch_index)
@@ -147,9 +147,9 @@ def pruning_step(val_metrics, intermediate_score, epoch_index, logger, is_optuna
 def completing_reporting(logger, is_optuna=False, trial=None, pso_attributes=None):
     is_pso, generation, particle = pso_attributes
     if is_pso:
-        logger.log(f"Training Gen n°{generation} - Particle n°{particle} Complete!\n\n")
+        logger.log(f"Trail n°{trial.number} (Gen n°{generation} - Particle n°{particle}) Complete!\n\n")
     elif is_optuna:
-        logger.log(f"Training n°{trial.number} Complete!\n\n")
+        logger.log(f"Trial n°{trial.number} Complete!\n\n")
     else:
         logger.log(f"Training Complete!\n\n")
 
@@ -159,7 +159,7 @@ def final_evaluation_reporting(test_metrics, final_score, logger, is_optuna=Fals
     is_pso, generation, particle = pso_attributes
 
     if is_pso:
-        pso_addition = f" - Gen n°{generation} - Particle n°{particle}"
+        pso_addition = f" (Gen n°{generation} - Particle n°{particle})"
 
     if is_optuna:
         trial.set_user_attr(key='accuracy', value=round(test_metrics[0], 4))
