@@ -27,14 +27,11 @@ class PSOSampler(BaseSampler):
         self._random_sampler = RandomSampler()   # For the first n_startup_trials
 
     def before_trial(self, study: Study, trial: FrozenTrial):
-        print("Before Trial") # TODO: Remove Debugging
-
         current_gen = self._get_trial_current_generation(trial)
         particle_id = self._get_trial_particle_id(trial)
 
         trial.system_attrs['generation'] = current_gen
         trial.system_attrs['particle'] = particle_id
-        print("User Attrs: ", trial.user_attrs) # TODO: Remove Debugging
 
     def _get_trial_current_generation(self, trial: FrozenTrial):
         return (trial.number // self.num_particles) + 1
@@ -43,23 +40,11 @@ class PSOSampler(BaseSampler):
         return (trial.number % self.num_particles) + 1
 
     def infer_relative_search_space(self, study: Study, trial: FrozenTrial):
-        print("Infer Relative Search Space") # TODO: Remove Debugging
         return self._search_space.calculate(study)
 
     def sample_relative(self, study: Study, trial: FrozenTrial, search_space: dict[str, BaseDistribution]):
-        print("Sample Relative") # TODO: Remove Debugging
-        print("Search Spacee: ", search_space) # TODO: Remove Debugging
-        print("Params: ", trial.params) # TODO: Remove Debugging
-
         if search_space == {}:
-            print("1° IF: Search Space is Empty") # TODO: Remove Debugging
             return {}
-
-        # states = (TrialState.COMPLETE, TrialState.PRUNED)
-        # trials = study._get_trials(deepcopy=False, states=states, use_cache=True)
-        # if len(trials) < self.n_startup_trials:
-        #     print("2° IF") # TODO: Remove Debugging
-        #     return {}
 
         if self.swarm is None:
             self._init_swarm(search_space)
@@ -67,16 +52,11 @@ class PSOSampler(BaseSampler):
         return self._sample(trial)
 
     def sample_independent(self, study: Study, trial: FrozenTrial, param_name: str, param_distribution: BaseDistribution):
-        print("Sample Independent") # TODO: Remove Debugging
-        print("Param Name: ", param_name) # TODO: Remove Debugging
-        print("Param Distribution: ", param_distribution) # TODO: Remove Debugging
-        print("----------------------------------------------------") # TODO: Remove Debugging
         if trial.number < self._n_startup_trials:
             return self._random_sampler.sample_independent(study, trial, param_name, param_distribution)
         raise NotImplementedError('Independent sampling is not supported for PSO.')
 
     def _sample(self, trial: FrozenTrial):
-        print("Sample") # TODO: Remove Debugging
         particle = self.swarm[self._get_trial_particle_id(trial)]
 
         hyperparameters = {}
@@ -87,34 +67,21 @@ class PSOSampler(BaseSampler):
                     categorical_hps[hp.categorical_id] = []
                 categorical_hps[hp.categorical_id].append((hp.name, position))
             elif isinstance(hp.distribution, IntDistribution):
-                print("Int Distribution: ", hp.name, hp.distribution) # TODO: Remove Debugging
-                print("Position: ", position) # TODO: Remove Debugging
-                print("Internal Repr: ", hp.distribution.to_internal_repr(position)) # TODO: Remove Debugging
-                print("External Repr: ", hp.distribution.to_external_repr(position)) # TODO: Remove Debugging
-                param_value_in_internal_repr = hp.distribution.to_internal_repr(position) # TODO: Remove Debugging
-                print("Contains int repr: ", hp.distribution._contains(param_value_in_internal_repr)) # TODO: Remove Debugging
-                hyperparameters[hp.name] = hp.round_to_nearest_low_multiple(position) # TODO: prova di cambio da round() a int()
+                hyperparameters[hp.name] = hp.round_to_nearest_low_multiple(position)
             elif isinstance(hp.distribution, FloatDistribution):
                 hyperparameters[hp.name] = position
             else:
                 raise ValueError('Invalid distribution type')
 
-        print("Categorical HPS: ", categorical_hps) # TODO: Remove Debugging
         for key, value in categorical_hps.items():
             index = np.argmax([t[1] for t in value])
             name = value[index][0]
             hyperparameters[key] = name
 
-        print("END OF SAMPLE(): Hyperparameters: ", hyperparameters) # TODO: Remove Debugging
-
         return hyperparameters
 
     def _init_swarm(self, search_space: dict[str, BaseDistribution]):
-        print("Init Swarm") # TODO: Remove Debugging
         for name, distribution in search_space.items():
-            print("Name: ", name) # TODO: Remove Debugging
-            print("Distribution Type: ", type(distribution)) # TODO: Remove Debugging
-            print("Distribution: ", distribution) # TODO: Remove Debugging
             if isinstance(distribution, CategoricalDistribution):
                 for choice in distribution.choices:
                     self.hps_bounds.append(_HPBound(choice, distribution, name))
@@ -135,17 +102,11 @@ class PSOSampler(BaseSampler):
         return (3 * (current_iter / self.max_generations)) + 0.5
 
     def after_trial(self, study: Study, trial: FrozenTrial, state: TrialState, values: Sequence[float] | None):
-        print("After Trial") # TODO: Remove Debugging
-        current_gen = self._get_trial_current_generation(trial)
-        particle_id = self._get_trial_particle_id(trial)
-
-        print("Current Gen: ", current_gen) # TODO: Remove Debugging
-        print("Particle ID: ", particle_id) # TODO: Remove Debugging
-        print("System Attrs: ", trial.system_attrs) # TODO: Remove Debugging
-        print("Params: ", trial.params) # TODO: Remove Debugging
-
         if self.swarm is None:
             return
+
+        current_gen = self._get_trial_current_generation(trial)
+        particle_id = self._get_trial_particle_id(trial)
 
         particle = self.swarm[particle_id]
 
