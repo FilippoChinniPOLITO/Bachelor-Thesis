@@ -10,8 +10,10 @@ from utils.training.eval_step import eval_step
 def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, loss_fn, optimizer, early_stopper, regularizer, logger, trial: Trial = None):
     # Init Special Parameters
     is_optuna = False
+    pso_attributes = (False, None, None)
     if trial is not None:
         is_optuna = True
+        pso_attributes = get_pso_attributes(trial)
     if regularizer is None:
         regularizer = lambda **kwargs: kwargs.get('score', None)
 
@@ -36,20 +38,20 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
         # Print Intermediate Evaluation
         intermediate_reporting(val_loss=val_loss, val_metrics=val_metrics_processed,
                                intermediate_score=optim_score, epoch_index=epoch_index,
-                               logger=logger, is_optuna=is_optuna, trial=trial)
+                               logger=logger, is_optuna=is_optuna, trial=trial, pso_attributes=pso_attributes)
 
         # Check Early-Stopping Step
         if early_stopper(score=optim_score, model=model):
-            early_stopping_reporting(logger=logger, is_optuna=is_optuna, trial=trial)
+            early_stopping_reporting(logger=logger, is_optuna=is_optuna, trial=trial, pso_attributes=pso_attributes)
             break
 
         # Pruning Step
         pruning_step(val_metrics=val_metrics_processed,
                      intermediate_score=optim_score, epoch_index=epoch_index,
-                     logger=logger, is_optuna=is_optuna, trial=trial)
+                     logger=logger, is_optuna=is_optuna, trial=trial, pso_attributes=pso_attributes)
 
     # Complete Training
-    completing_reporting(logger=logger, is_optuna=is_optuna, trial=trial)
+    completing_reporting(logger=logger, is_optuna=is_optuna, trial=trial, pso_attributes=pso_attributes)
     model.load_state_dict(early_stopper.get_best_model_params())
 
 
@@ -64,7 +66,7 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
     # Print Final Evaluation
     final_evaluation_reporting(test_metrics=test_metrics_processed,
                                final_score=final_optim_score,
-                               logger=logger, is_optuna=is_optuna, trial=trial)
+                               logger=logger, is_optuna=is_optuna, trial=trial, pso_attributes=pso_attributes)
 
     # Empty Cache
     cuda.empty_cache()
@@ -87,8 +89,8 @@ def get_pso_attributes(trial):
     return is_pso, generation, particle
 
 
-def intermediate_reporting(val_loss, val_metrics, intermediate_score, epoch_index, logger, is_optuna=False, trial=None):
-    is_pso, generation, particle = get_pso_attributes(trial)
+def intermediate_reporting(val_loss, val_metrics, intermediate_score, epoch_index, logger, is_optuna=False, trial=None, pso_attributes=None):
+    is_pso, generation, particle = pso_attributes
     optuna_addition_1 = ''
     optuna_addition_2 = ''
 
@@ -111,8 +113,8 @@ def intermediate_reporting(val_loss, val_metrics, intermediate_score, epoch_inde
     logger.log(f'Intermediate Optimization Score{optuna_addition_2}: {intermediate_score*100:>0.4f}%\n')
 
 
-def early_stopping_reporting(logger, is_optuna=False, trial=None):
-    is_pso, generation, particle = get_pso_attributes(trial)
+def early_stopping_reporting(logger, is_optuna=False, trial=None, pso_attributes=None):
+    is_pso, generation, particle = pso_attributes
     if is_pso:
         logger.log(f"Trial n°{trial.number} - Gen n°{generation} - Particle n°{particle} Early Stopped!")
     elif is_optuna:
@@ -121,9 +123,9 @@ def early_stopping_reporting(logger, is_optuna=False, trial=None):
         logger.log(f"Training Early Stopped!")
 
 
-def pruning_step(val_metrics, intermediate_score, epoch_index, logger, is_optuna=False, trial=None):
+def pruning_step(val_metrics, intermediate_score, epoch_index, logger, is_optuna=False, trial=None, pso_attributes=None):
     pso_addition = ''
-    is_pso, generation, particle = get_pso_attributes(trial)
+    is_pso, generation, particle = pso_attributes
 
     if is_pso:
         pso_addition = f" - Gen n°{generation} - Particle n°{particle}"
@@ -142,8 +144,8 @@ def pruning_step(val_metrics, intermediate_score, epoch_index, logger, is_optuna
             raise optuna.TrialPruned()
 
 
-def completing_reporting(logger, is_optuna=False, trial=None):
-    is_pso, generation, particle = get_pso_attributes(trial)
+def completing_reporting(logger, is_optuna=False, trial=None, pso_attributes=None):
+    is_pso, generation, particle = pso_attributes
     if is_pso:
         logger.log(f"Training Gen n°{generation} - Particle n°{particle} Complete!\n\n")
     elif is_optuna:
@@ -152,9 +154,9 @@ def completing_reporting(logger, is_optuna=False, trial=None):
         logger.log(f"Training Complete!\n\n")
 
 
-def final_evaluation_reporting(test_metrics, final_score, logger, is_optuna=False, trial=None):
+def final_evaluation_reporting(test_metrics, final_score, logger, is_optuna=False, trial=None, pso_attributes=None):
     pso_addition = ''
-    is_pso, generation, particle = get_pso_attributes(trial)
+    is_pso, generation, particle = pso_attributes
 
     if is_pso:
         pso_addition = f" - Gen n°{generation} - Particle n°{particle}"

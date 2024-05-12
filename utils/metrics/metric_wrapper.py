@@ -1,4 +1,7 @@
-from metrics_handler import MODE
+from typing import Literal
+
+
+MODE = Literal['standard', 'weed_mapping']
 
 
 class MetricWrapper:

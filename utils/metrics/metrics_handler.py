@@ -1,12 +1,7 @@
-from typing import Literal
-
 from torchmetrics import Accuracy, Precision, Recall, F1Score
 
-from metric_wrapper import MetricWrapper, MockMetric
+from utils.metrics.metric_wrapper import MetricWrapper, MockMetric, MODE
 from experiments.weed_mapping_experiment.backend.utils import metrics
-
-
-MODE = Literal['standard', 'weed_mapping']
 
 
 class MetricsHandler:
