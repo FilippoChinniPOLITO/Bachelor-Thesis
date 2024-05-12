@@ -16,6 +16,11 @@ class OptunaStudyCreator:
         if storage:
             storage_url = f'sqlite:///{db_file}'
             storage_obj = RDBStorage(url=storage_url, engine_kwargs={"connect_args": {"timeout": 10}})
+            try:
+                storage_obj.get_study_id_from_name(study_name)
+                raise ValueError(f"Study {study_name} already exists in the database.")
+            except KeyError:
+                pass
         else:
             storage_obj = None
 
