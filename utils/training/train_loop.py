@@ -15,7 +15,7 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
         is_optuna = True
         pso_attributes = get_pso_attributes(trial)
     if regularizer is None:
-        regularizer = lambda **kwargs: kwargs.get('score', None)
+        regularizer = lambda **kwargs: kwargs.get('score', None)  # Mock Regularizer
 
     # Get Metric to Follow
     metric_index = get_metric_to_follow(model)
@@ -47,7 +47,7 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
 
         # Pruning Step
         pruning_step(val_metrics=val_metrics_processed,
-                     intermediate_score=optim_score, epoch_index=epoch_index,
+                     report_score=early_stopper.get_best_score(), epoch_index=epoch_index,
                      logger=logger, is_optuna=is_optuna, trial=trial, pso_attributes=pso_attributes)
 
     # Complete Training
@@ -69,7 +69,7 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
                                logger=logger, is_optuna=is_optuna, trial=trial, pso_attributes=pso_attributes)
 
     # Empty Cache
-    cuda.empty_cache()
+    # cuda.empty_cache()  # TODO controllare le prestazioni ed eventualmente rimuovere definitivamente
 
     return final_optim_score
 
@@ -123,7 +123,7 @@ def early_stopping_reporting(logger, is_optuna=False, trial=None, pso_attributes
         logger.log(f"Training Early Stopped!")
 
 
-def pruning_step(val_metrics, intermediate_score, epoch_index, logger, is_optuna=False, trial=None, pso_attributes=None):
+def pruning_step(val_metrics, report_score, epoch_index, logger, is_optuna=False, trial=None, pso_attributes=None):
     pso_addition = ''
     is_pso, generation, particle = pso_attributes
 
@@ -131,8 +131,8 @@ def pruning_step(val_metrics, intermediate_score, epoch_index, logger, is_optuna
         pso_addition = f" (Gen n°{generation} - Particle n°{particle})"
 
     if is_optuna:
-        trial.report(value=intermediate_score, step=epoch_index)
-        if (intermediate_score < 0) or (trial.should_prune()):
+        trial.report(value=report_score, step=epoch_index)
+        if (report_score < 0) or (trial.should_prune()):
             trial.set_user_attr(key='accuracy', value=round(val_metrics[0], 4))
             trial.set_user_attr(key='precision', value=round(val_metrics[1], 4))
             trial.set_user_attr(key='recall', value=round(val_metrics[2], 4))
@@ -140,7 +140,7 @@ def pruning_step(val_metrics, intermediate_score, epoch_index, logger, is_optuna
 
             logger.log(f"Trial n°{trial.number}{pso_addition} Pruned!\n\n")
 
-            cuda.empty_cache()
+            # cuda.empty_cache()  # TODO controllare le prestazioni ed eventualmente rimuovere definitivamente
             raise optuna.TrialPruned()
 
 
@@ -180,5 +180,5 @@ def final_evaluation_reporting(test_metrics, final_score, logger, is_optuna=Fals
 
 def get_metric_to_follow(model):
     if isinstance(model, Lawin):
-        return 3
-    return 0
+        return 3    # F1
+    return 0        # Accuracy

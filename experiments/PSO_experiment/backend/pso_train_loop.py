@@ -61,7 +61,7 @@ def pso_full_train_loop(max_epochs, train_loader, val_loader, test_loader, model
                                logger=logger, trial=trial)
 
     # Empty Cache
-    cuda.empty_cache()
+    # cuda.empty_cache()
 
     return final_optim_score
 
@@ -93,7 +93,7 @@ def pruning_step(val_metrics, intermediate_score, epoch_index, logger, trial):
 
         logger.log(f"Trial Gen n°{trial.generation} - Particle n°{trial.particle_id} Pruned!\n\n")
 
-        cuda.empty_cache()
+        # cuda.empty_cache()
         trial.prune_trial()
         return intermediate_score
 

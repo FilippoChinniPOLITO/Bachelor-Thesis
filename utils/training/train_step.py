@@ -3,7 +3,7 @@ from utils.misc.device import get_device
 
 def train_step(dataloader, model, loss_fn, optimizer, log_step=None):
     # Compute Dateset Size
-    size = len(dataloader.dataset)
+    size = len(dataloader.dataset) if log_step is not None else None
 
     # Set the Device
     device = get_device()
