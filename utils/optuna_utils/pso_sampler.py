@@ -28,15 +28,19 @@ class PSOSampler(BaseSampler):
 
     def before_trial(self, study: Study, trial: FrozenTrial):
         print("Before Trial") # TODO: Remove Debugging
-        # if self.max_generations is None:
-        #     self.max_generations = self.n_total_trials // self.num_particles
 
-        current_gen = (trial.number // self.num_particles) + 1
-        particle_id = (trial.number % self.num_particles) + 1
+        current_gen = self._get_trial_current_generation(trial)
+        particle_id = self._get_trial_particle_id(trial)
 
         trial.system_attrs['generation'] = current_gen
         trial.system_attrs['particle'] = particle_id
         print("User Attrs: ", trial.user_attrs) # TODO: Remove Debugging
+
+    def _get_trial_current_generation(self, trial: FrozenTrial):
+        return (trial.number // self.num_particles) + 1
+
+    def _get_trial_particle_id(self, trial: FrozenTrial):
+        return (trial.number % self.num_particles) + 1
 
     def infer_relative_search_space(self, study: Study, trial: FrozenTrial):
         print("Infer Relative Search Space") # TODO: Remove Debugging
@@ -73,7 +77,7 @@ class PSOSampler(BaseSampler):
 
     def _sample(self, trial: FrozenTrial):
         print("Sample") # TODO: Remove Debugging
-        particle = self.swarm[trial.system_attrs['particle']]
+        particle = self.swarm[self._get_trial_particle_id(trial)]
 
         hyperparameters = {}
         categorical_hps = {}
@@ -132,8 +136,8 @@ class PSOSampler(BaseSampler):
 
     def after_trial(self, study: Study, trial: FrozenTrial, state: TrialState, values: Sequence[float] | None):
         print("After Trial") # TODO: Remove Debugging
-        current_gen = trial.system_attrs['generation']
-        particle_id = trial.system_attrs['particle']
+        current_gen = self._get_trial_current_generation(trial)
+        particle_id = self._get_trial_particle_id(trial)
 
         print("Current Gen: ", current_gen) # TODO: Remove Debugging
         print("Particle ID: ", particle_id) # TODO: Remove Debugging

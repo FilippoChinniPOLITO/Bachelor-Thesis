@@ -69,7 +69,7 @@ def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, lo
                                logger=logger, is_optuna=is_optuna, trial=trial, pso_attributes=pso_attributes)
 
     # Empty Cache
-    # cuda.empty_cache()  # TODO controllare le prestazioni ed eventualmente rimuovere definitivamente
+    cuda.empty_cache()
 
     return final_optim_score
 
@@ -140,7 +140,7 @@ def pruning_step(val_metrics, report_score, epoch_index, logger, is_optuna=False
 
             logger.log(f"Trial n°{trial.number}{pso_addition} Pruned!\n\n")
 
-            # cuda.empty_cache()  # TODO controllare le prestazioni ed eventualmente rimuovere definitivamente
+            cuda.empty_cache()
             raise optuna.TrialPruned()
 
 
