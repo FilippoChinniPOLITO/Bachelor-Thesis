@@ -33,15 +33,19 @@ from utils.model.model_utils import get_activation_fn, get_loss_fn, get_optimize
 from utils.optuna_utils.optuna_runner import OptunaRunner
 from utils.optuna_utils.optuna_study_creator import OptunaStudyCreator
 from utils.optuna_utils.pso_sampler import PSOSampler
-
+from utils.display_results.display_results import prediction_loop
+from utils.display_results.display_results import display_images
+from utils.persistency.file_name_builder import file_name_builder, folder_exists_check
 #%% md
 ### Init Session
 #%%
-session_num = '012'
+EXPERIMENT_NAME = 'MNIST_Optuna_Optimization'
 #%%
-outputs_folder_path_csv = 'output_files_MNIST/csv'
-outputs_folder_path_txt = 'output_files_MNIST/txt'
-outputs_folder_path_db = 'output_files_MNIST/db'
+SESSION_NUM = '012'
+#%%
+OUTPUTS_FOLDER_PATH_CSV = 'output_files_MNIST/csv'
+OUTPUTS_FOLDER_PATH_TXT = 'output_files_MNIST/txt'
+OUTPUTS_FOLDER_PATH_DB = 'output_files_MNIST/db'
 #%% md
 ## Load Data
 #%%
@@ -134,13 +138,16 @@ DIRECTION = 'maximize'
 optuna_runner = OptunaRunner(objective_fn=objective,
                              n_jobs=-1,
                              n_trials=256,
-                             path_csv=outputs_folder_path_csv,
-                             path_txt=outputs_folder_path_txt,
-                             session_num=session_num,
+                             path_csv=OUTPUTS_FOLDER_PATH_CSV,
+                             path_txt=OUTPUTS_FOLDER_PATH_TXT,
+                             session_num=SESSION_NUM,
                              metric_to_follow='accuracy',
                              attrs=ATTRS)
 #%%
-optuna_study_creator = OptunaStudyCreator(path_db=outputs_folder_path_db, session_num=session_num)
+optuna_study_creator = OptunaStudyCreator(experiment_name=EXPERIMENT_NAME,
+                                          path_db=OUTPUTS_FOLDER_PATH_DB,
+                                          session_num=SESSION_NUM,
+                                          use_storage=True)
 #%% md
 #### Optuna Constants - Samplers
 #%%
@@ -158,20 +165,20 @@ HyperbandPruner = optuna.pruners.HyperbandPruner(min_resource=3, max_resource=30
 #### Random Sampler
 #%%
 study_name_Random = 'Random_Sampler'
-study_Random = optuna_study_creator(study_name=study_name_Random, storage=True, direction=DIRECTION,
+study_Random = optuna_study_creator(study_name=study_name_Random, direction=DIRECTION,
                                     sampler=RandomSampler, pruner=None)
 optuna_runner(study_Random, study_name_Random)
 #%% md
 #### TPE Sampler
 #%%
 study_name_TPE = 'TPE_Sampler'
-study_TPE = optuna_study_creator(study_name=study_name_TPE, storage=True, direction=DIRECTION,
+study_TPE = optuna_study_creator(study_name=study_name_TPE, direction=DIRECTION,
                                  sampler=TPESampler, pruner=None)
 optuna_runner(study_TPE, study_name_TPE)
 #%% md
 #### PSO Sampler
 #%%
 study_name_PSO = 'PSO_Sampler'
-study_PSO = optuna_study_creator(study_name=study_name_PSO, storage=False, direction=DIRECTION,
+study_PSO = optuna_study_creator(study_name=study_name_PSO, direction=DIRECTION,
                                  sampler=PSOSampler, pruner=None)
 optuna_runner(study_PSO, study_name_PSO)

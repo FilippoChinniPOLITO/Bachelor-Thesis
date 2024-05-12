@@ -136,7 +136,8 @@ optuna_runner = OptunaRunner(objective_fn=objective,
 #%%
 optuna_study_creator = OptunaStudyCreator(experiment_name=EXPERIMENT_NAME,
                                           path_db=OUTPUTS_FOLDER_PATH_DB,
-                                          session_num=SESSION_NUM)
+                                          session_num=SESSION_NUM,
+                                          use_storage=True)
 #%% md
 #### Optuna Constants - Samplers
 #%%
@@ -154,20 +155,20 @@ HyperbandPruner = optuna.pruners.HyperbandPruner(min_resource=10, max_resource=2
 #### Random Sampler
 #%%
 study_name_Random = 'Random_Sampler'
-study_Random = optuna_study_creator(study_name=study_name_Random, storage=True, direction=DIRECTION,
+study_Random = optuna_study_creator(study_name=study_name_Random, direction=DIRECTION,
                                     sampler=RandomSampler, pruner=None)
 optuna_runner(study_Random, study_name_Random)
 #%% md
 #### TPE Sampler
 #%%
 study_name_TPE = 'TPE_Sampler'
-study_TPE = optuna_study_creator(study_name=study_name_TPE, storage=True, direction=DIRECTION,
+study_TPE = optuna_study_creator(study_name=study_name_TPE, direction=DIRECTION,
                                  sampler=TPESampler, pruner=None)
 optuna_runner(study_TPE, study_name_TPE)
 #%% md
 #### PSO Sampler
 #%%
 study_name_PSO = 'PSO_Sampler'
-study_PSO = optuna_study_creator(study_name=study_name_PSO, storage=False, direction=DIRECTION,
+study_PSO = optuna_study_creator(study_name=study_name_PSO, direction=DIRECTION,
                                  sampler=PSOSampler, pruner=None)
 optuna_runner(study_PSO, study_name_PSO)
