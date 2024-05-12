@@ -71,7 +71,7 @@ def eval_step_weedmapping(dataloader, model, loss_fn):
 
     # Evaluation Step
     with torch.no_grad():
-        for X, y, _ in dataloader:
+        for X, y in dataloader:
             # Mount data to device
             X, y = X.to(device), y.to(device)
 

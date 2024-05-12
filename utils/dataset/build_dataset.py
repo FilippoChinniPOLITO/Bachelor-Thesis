@@ -34,6 +34,6 @@ def load_weedmap_data():
         test_batch_size=12,
         hor_flip=True,
         ver_flip=True,
-        return_path=True,
+        return_path=False,
         num_classes=3,
     ))

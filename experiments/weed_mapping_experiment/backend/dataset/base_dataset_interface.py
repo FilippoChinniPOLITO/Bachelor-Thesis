@@ -37,7 +37,7 @@ class DatasetInterface:
             raise Exception("repeated augmentation is only supported with DDP.")
 
         if distributed_sampler:
-            None == None
+            pass
             # self.batch_size_factor = 1
             # train_sampler = RepeatAugSampler(self.trainset,
             #                                  num_repeats=aug_repeat_count) if aug_repeat_count > 0 else DistributedSampler(
