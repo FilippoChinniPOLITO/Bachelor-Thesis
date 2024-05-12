@@ -1,7 +1,7 @@
 import optuna
 from optuna.storages import RDBStorage
 
-from utils.persistency.file_name_builder import folder_exists_check, file_name_builder
+from utils.persistency.file_name_builder import folder_exists_check, file_name_builder, file_path_builder
 
 
 class OptunaStudyCreator:
@@ -11,8 +11,11 @@ class OptunaStudyCreator:
         self.session_num = session_num
 
     def __call__(self, study_name, storage, direction, sampler, pruner=None):
-        folder_exists_check(self.path_db, '', f'{self.experiment_name}')
-        db_file = file_name_builder(self.path_db, '', f'{self.experiment_name}', 'db')
+        try:
+            folder_exists_check(self.path_db, '', f'{self.experiment_name}')
+            db_file = file_name_builder(self.path_db, '', f'{self.experiment_name}', 'db')
+        except Exception:
+            db_file = file_path_builder(self.path_db, f'{self.experiment_name}', '', 'db')
 
         db_study_name = f'study_{study_name}_{self.session_num}'
 
