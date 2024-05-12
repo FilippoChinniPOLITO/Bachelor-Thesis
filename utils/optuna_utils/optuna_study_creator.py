@@ -29,7 +29,7 @@ class OptunaStudyCreator:
                 db_file = file_path_builder(self.path_db, f'{self.experiment_name}', '', 'db')
 
             storage_url = f'sqlite:///{db_file}'
-            storage_obj = RDBStorage(url=storage_url, engine_kwargs={"connect_args": {"timeout": 20}})
+            storage_obj = RDBStorage(url=storage_url, engine_kwargs={"connect_args": {"timeout": 15}})
 
             try:
                 storage_obj.get_study_id_from_name(db_study_name)
