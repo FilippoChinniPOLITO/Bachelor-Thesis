@@ -30,12 +30,10 @@ from utils.optimization.early_stopper import EarlyStopper
 from utils.optimization.regularizer import Regularizer
 from utils.misc.device import get_device
 from utils.model.model_utils import get_activation_fn, get_loss_fn, get_optimizer
-from utils.optimization.optuna_runner import OptunaRunner
-from utils.optimization.optuna_study_creator import OptunaStudyCreator
-from utils.pso.pso_sampler import PSOSampler
-from utils.display_results.display_results import prediction_loop
-from utils.display_results.display_results import display_images
-from utils.persistency.file_name_builder import file_name_builder, folder_exists_check
+from utils.optuna_utils.optuna_runner import OptunaRunner
+from utils.optuna_utils.optuna_study_creator import OptunaStudyCreator
+from utils.optuna_utils.pso_sampler import PSOSampler
+
 #%% md
 ### Init Session
 #%%

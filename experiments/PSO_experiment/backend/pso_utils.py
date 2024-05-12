@@ -1,4 +1,4 @@
-from utils.pso.PSO import PSOTrial
+from experiments.PSO_experiment.backend.PSO import PSOTrial
 from utils.optimization.regularizer import MODEL_ARCHITECTURES_WEEDMAPPING
 
 

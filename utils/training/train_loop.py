@@ -2,7 +2,7 @@ import optuna
 from torch import cuda
 from optuna import Trial
 
-from utils.pso.PSO import PSOTrial
+from experiments.PSO_experiment.backend.PSO import PSOTrial
 from utils.training.train_step import train_step, train_step_weedmapping
 from utils.training.eval_step import eval_step
 from utils.training.eval_step import eval_step_weedmapping

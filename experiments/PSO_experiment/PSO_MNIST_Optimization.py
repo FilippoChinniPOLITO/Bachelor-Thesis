@@ -24,11 +24,11 @@ from utils.optimization.early_stopper import EarlyStopper
 from utils.optimization.regularizer import Regularizer
 from utils.misc.device import get_device
 from utils.model.model_utils import get_activation_fn, get_loss_fn, get_optimizer
-from utils.pso.PSO import PSO, PSOTrial
-from utils.pso.pso_utils import decode_hyperparameter, build_encoded_dict
-from utils.pso.pso_utils import ACTIVATION_FN_BOUNDS, LOSS_FN_BOUNDS, OPTIMIZER_BOUNDS
-from utils.pso.pso_runner import PSORunner
-from utils.pso.pso_pruners import PSOMedianPruner
+from experiments.PSO_experiment.backend.PSO import PSO, PSOTrial
+from experiments.PSO_experiment.backend.pso_utils import decode_hyperparameter, build_encoded_dict
+from experiments.PSO_experiment.backend.pso_utils import ACTIVATION_FN_BOUNDS, OPTIMIZER_BOUNDS
+from experiments.PSO_experiment.backend.pso_runner import PSORunner
+from experiments.PSO_experiment.backend.pso_pruners import PSOMedianPruner
 #%% md
 ### Init Session
 #%%

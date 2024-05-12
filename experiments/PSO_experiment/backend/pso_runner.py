@@ -1,6 +1,6 @@
 from utils.persistency.file_name_builder import folder_exists_check, file_name_builder
 from utils.persistency.logger import Logger
-from utils.pso.PSO import PSO
+from experiments.PSO_experiment.backend.PSO import PSO
 
 ATTRS = ('generation', 'particle_id', 'hp_num_hidden_layer', 'score', 'user_attrs_epochs', 'user_attrs_network', 'user_attr_accuracy', 'user_attr_precision', 'user_attr_recall', 'user_attr_f1', 'state', 'duration', 'hp_hidden_layer_n1_size', 'hp_hidden_layer_n2_size', 'hp_hidden_layer_n3_size', 'hp_learning_rate' 'datetime_start', 'datetime_complete')
 

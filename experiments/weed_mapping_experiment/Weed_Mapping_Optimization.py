@@ -31,7 +31,7 @@ from utils.optimization.early_stopper import EarlyStopper
 from utils.optimization.regularizer import Regularizer_WeedMapping, MODEL_ARCHITECTURES_WEEDMAPPING
 from utils.misc.device import get_device
 from utils.model.model_utils import get_loss_fn, get_optimizer
-from utils.optimization.optuna_runner import OptunaRunner
+from utils.optuna_utils.optuna_runner import OptunaRunner
 #%% md
 ### Init Session
 #%%

@@ -1,6 +1,6 @@
 import numpy as np
 
-from utils.pso.PSO import PSOTrial
+from experiments.PSO_experiment.backend.PSO import PSOTrial
 
 
 class BasePSOPruner:
