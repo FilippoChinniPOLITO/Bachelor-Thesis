@@ -40,12 +40,10 @@ class MockMetric:
         return self
 
     def __format__(self, format_spec):
-        if format_spec == 'f' or format_spec == '0.4f' or format_spec == '>0.4f':
-            return 'N/A'
-        return 'N/A'
+        return 'N/A  '
 
     def __round__(self, n=None):
         return self
 
     def __str__(self):
-        return 'N/A'
+        return 'N/A  '
