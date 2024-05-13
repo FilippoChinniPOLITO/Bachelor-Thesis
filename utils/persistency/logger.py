@@ -35,7 +35,7 @@ class Logger:
 
     def end_log(self):
         with open(self.log_file, 'a') as f:
-            f.write(f"\n\n{DASH_LINE}\n\n"
+            f.write(f"\n\n\n{DASH_LINE}\n"
                     f"End of Log File.\n"
                     f"Duration: {str(datetime.now() - self.start_time).split('.')[0]}\n"
                     f"Terminated on: {str(datetime.now()).split('.')[0]}\n")
