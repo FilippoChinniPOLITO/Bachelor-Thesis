@@ -121,7 +121,7 @@ def objective(trial: Trial, logger: Logger):
 #%% md
 #### Optuna Constants - Study Parameters
 #%%
-ATTRS = ('number', 'system_attrs', 'value', 'user_attrs', 'state', 'params', 'duration', 'datetime_start', 'datetime_complete')
+ATTRS = ('number', 'value', 'user_attrs', 'state', 'params', 'duration', 'datetime_start', 'datetime_complete')
 #%%
 DIRECTION = 'maximize'
 #%%

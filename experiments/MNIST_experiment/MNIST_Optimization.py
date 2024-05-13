@@ -41,7 +41,7 @@ from utils.persistency.file_name_builder import file_name_builder, folder_exists
 #%%
 EXPERIMENT_NAME = 'MNIST_Optuna_Optimization'
 #%%
-SESSION_NUM = '012'
+SESSION_NUM = '013'
 #%%
 OUTPUTS_FOLDER_PATH_CSV = 'output_files_MNIST/csv'
 OUTPUTS_FOLDER_PATH_TXT = 'output_files_MNIST/txt'
@@ -131,7 +131,7 @@ def objective(trial: Trial, logger: Logger):
 #%% md
 #### Optuna Constants - Study Parameters
 #%%
-ATTRS = ('number', 'system_attrs', 'value', 'user_attrs', 'state', 'params', 'duration', 'datetime_start', 'datetime_complete')
+ATTRS = ('number', 'value', 'user_attrs', 'state', 'params', 'duration', 'datetime_start', 'datetime_complete')
 #%%
 DIRECTION = 'maximize'
 #%%

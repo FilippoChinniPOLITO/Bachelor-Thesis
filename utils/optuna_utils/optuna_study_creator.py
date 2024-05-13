@@ -48,3 +48,12 @@ class OptunaStudyCreator:
 
         study = optuna.load_study(study_name=db_study_name, storage=storage_url)
         return study
+
+    def copy_study_into_new_db(self, study_name, session, from_db_name):
+        db_study_name = f'study_{study_name}_{session}'
+        db_file = file_path_builder(self.path_db, f'{from_db_name}', '', 'db')
+
+        optuna.copy_study(from_study_name=db_study_name,
+                          to_study_name=db_study_name,
+                          from_storage=f'sqlite:///{db_file}',
+                          to_storage=self.storage_obj)
