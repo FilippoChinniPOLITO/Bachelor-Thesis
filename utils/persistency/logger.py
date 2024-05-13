@@ -48,7 +48,7 @@ class Logger:
                     f"{DASH_LINE}\n"
                     f"ERROR: {exception}\n\n")
             traceback.print_exception(type(exception), exception, exception.__traceback__, file=f)
-            f.write(f"\n{DASH_LINE}\n"
+            f.write(f"\n\n{DASH_LINE}\n"
                     f"{WARN_LINE}\n\n")
 
     def test(self, test_message):
@@ -67,8 +67,8 @@ class Logger:
             with open(self.log_file, 'a') as f:
                 f.write(f"\n\n{TILD_LINE}\n"
                         f"PERIODIC LOG\n\n"
-                        f"State: Still Running\n"
+                        f"State:                   Still Running\n"
                         f"Completed/Pruned Trials: {self.log_count}\n"
-                        f"Date: {str(datetime.now()).split('.')[0]}\n"
-                        f"Up-Time: {str(datetime.now() - self.start_time).split('.')[0]}\n"
+                        f"Date:                    {str(datetime.now()).split('.')[0]}\n"
+                        f"Up-Time:                 {str(datetime.now() - self.start_time).split('.')[0]}\n"
                         f"{TILD_LINE}\n\n")

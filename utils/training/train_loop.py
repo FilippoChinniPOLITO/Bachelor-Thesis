@@ -3,11 +3,14 @@ from torch import cuda
 from optuna import Trial
 
 from experiments.weed_mapping_experiment.backend.model.lawin_model import Lawin
+from utils.optimization.early_stopper import EarlyStopper
+from utils.optimization.regularizer import Regularizer, Regularizer_WeedMapping
+from utils.persistency.logger import Logger
 from utils.training.train_step import train_step
 from utils.training.eval_step import eval_step
 
 
-def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, loss_fn, optimizer, early_stopper, regularizer, logger, trial: Trial = None):
+def full_train_loop(max_epochs, train_loader, val_loader, test_loader, model, loss_fn, optimizer, early_stopper: EarlyStopper, regularizer: Regularizer | Regularizer_WeedMapping, logger: Logger, trial: Trial = None):
     # Init Special Parameters
     is_optuna = False
     pso_attributes = (False, None, None)
