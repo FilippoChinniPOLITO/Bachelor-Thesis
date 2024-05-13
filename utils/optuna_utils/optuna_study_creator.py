@@ -31,7 +31,7 @@ class OptunaStudyCreator:
             db_file = file_path_builder(self.path_db, f'{self.experiment_name}', '', 'db')
 
         storage_url = f'sqlite:///{db_file}'
-        self.storage_obj = RDBStorage(url=storage_url, engine_kwargs={"connect_args": {"timeout": 20}})
+        self.storage_obj = RDBStorage(url=storage_url, engine_kwargs={"connect_args": {"timeout": 30}})
 
     def _check_study_exists(self, db_study_name):
         try:
