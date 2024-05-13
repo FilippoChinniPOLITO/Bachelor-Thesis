@@ -156,19 +156,19 @@ HyperbandPruner = optuna.pruners.HyperbandPruner(min_resource=10, max_resource=2
 #%%
 study_name_Random = 'Random_Sampler'
 study_Random = optuna_study_creator(study_name=study_name_Random, direction=DIRECTION,
-                                    sampler=RandomSampler, pruner=None)
+                                    sampler=RandomSampler, pruner=MedianPruner)
 optuna_runner(study_Random, study_name_Random)
 #%% md
 #### TPE Sampler
 #%%
 study_name_TPE = 'TPE_Sampler'
 study_TPE = optuna_study_creator(study_name=study_name_TPE, direction=DIRECTION,
-                                 sampler=TPESampler, pruner=None)
+                                 sampler=TPESampler, pruner=HyperbandPruner)
 optuna_runner(study_TPE, study_name_TPE)
 #%% md
 #### PSO Sampler
 #%%
 study_name_PSO = 'PSO_Sampler'
 study_PSO = optuna_study_creator(study_name=study_name_PSO, direction=DIRECTION,
-                                 sampler=PSOSampler, pruner=None)
+                                 sampler=PSOSampler, pruner=HyperbandPruner)
 optuna_runner(study_PSO, study_name_PSO)
