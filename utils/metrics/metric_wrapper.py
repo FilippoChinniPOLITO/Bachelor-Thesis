@@ -34,7 +34,7 @@ class MockMetric:
         return self
 
     def item(self):
-        return 'N/A'
+        return self
 
     def __mul__(self, other):
         return self
@@ -44,3 +44,6 @@ class MockMetric:
 
     def __round__(self, n=None):
         return self
+
+    def __str__(self):
+        return 'N/A'
