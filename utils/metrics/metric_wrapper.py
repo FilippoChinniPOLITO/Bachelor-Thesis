@@ -50,3 +50,6 @@ class MockMetric:
 
     def __dict__(self):
         return {'value': self.__str__()}
+
+    def toJson(self):
+        return json.dumps(self, default=lambda o: o.__dict__)
