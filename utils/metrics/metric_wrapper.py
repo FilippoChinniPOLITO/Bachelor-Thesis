@@ -47,3 +47,6 @@ class MockMetric:
 
     def __str__(self):
         return 'N/A  '
+
+    def __dict__(self):
+        return {'value': self.__str__()}
