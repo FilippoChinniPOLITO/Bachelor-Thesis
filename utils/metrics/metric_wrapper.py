@@ -24,8 +24,9 @@ class MetricWrapper:
         return self.metric.compute()
 
 
-class MockMetric:
+class MockMetric(dict):
     def __init__(self, *args, **kwargs):
+        dict.__init__(self, *args, **kwargs)
         pass
 
     def update(self, *args, **kwargs):
@@ -41,16 +42,11 @@ class MockMetric:
         return self
 
     def __format__(self, format_spec):
-        return 'N/A  '
+        return 'N/A'
 
     def __round__(self, n=None):
         return self
 
     def __str__(self):
-        return 'N/A  '
+        return 'N/A'
 
-    def __dict__(self):
-        return {'value': self.__str__()}
-
-    def toJson(self):
-        return json.dumps(self, default=lambda o: o.__dict__)
