@@ -66,13 +66,30 @@ class OptunaStudyCreator:
 
         engine = create_engine(storage_url)
         with engine.connect() as connection:
-            # Delete from studies table
-            connection.execute(text(f"DELETE FROM studies WHERE study_name = :sname"), {"sname": db_study_name})
-            # Delete from trial_params table
-            connection.execute(text(f"DELETE FROM trial_params WHERE trial_id IN (SELECT trial_id FROM trials WHERE study_id NOT IN (SELECT study_id FROM studies))"))
-            # Delete from trial_values table
-            connection.execute(text(f"DELETE FROM trial_values WHERE trial_id IN (SELECT trial_id FROM trials WHERE study_id NOT IN (SELECT study_id FROM studies))"))
-            # Delete from trial_intermediate_values table
-            connection.execute(text(f"DELETE FROM trial_intermediate_values WHERE trial_id IN (SELECT trial_id FROM trials WHERE study_id NOT IN (SELECT study_id FROM studies))"))
-            # Delete from trials table
-            connection.execute(text(f"DELETE FROM trials WHERE study_id NOT IN (SELECT study_id FROM studies)"))
+            transaction = connection.begin()
+            try:
+                # Delete from studies table
+                result = connection.execute(text(f"DELETE FROM studies WHERE study_name = :sname"), {"sname": db_study_name})
+                print(f"Deleted {result.rowcount} rows from studies")
+
+                # Delete from trial_params table
+                result = connection.execute(text(f"DELETE FROM trial_params WHERE trial_id IN (SELECT trial_id FROM trials WHERE study_id NOT IN (SELECT study_id FROM studies))"))
+                print(f"Deleted {result.rowcount} rows from trial_params")
+
+                # Delete from trial_values table
+                result = connection.execute(text(f"DELETE FROM trial_values WHERE trial_id IN (SELECT trial_id FROM trials WHERE study_id NOT IN (SELECT study_id FROM studies))"))
+                print(f"Deleted {result.rowcount} rows from trial_values")
+
+                # Delete from trial_intermediate_values table
+                result = connection.execute(text(f"DELETE FROM trial_intermediate_values WHERE trial_id IN (SELECT trial_id FROM trials WHERE study_id NOT IN (SELECT study_id FROM studies))"))
+                print(f"Deleted {result.rowcount} rows from trial_intermediate_values")
+
+                # Delete from trials table
+                result = connection.execute(text(f"DELETE FROM trials WHERE study_id NOT IN (SELECT study_id FROM studies)"))
+                print(f"Deleted {result.rowcount} rows from trials")
+
+                transaction.commit()
+            except Exception as e:
+                transaction.rollback()
+                raise
+
