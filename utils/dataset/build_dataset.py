@@ -26,6 +26,7 @@ def load_weedmap_data():
     return WeedMapDatasetInterface(dict(
         root="../../../../../0_rotations_processed_003_test/RedEdge",
         # root="../../experiments/weed_mapping_experiment/data_weedmap/Weed Map Dataset Processed/RedEdge",
+        # root="data_weedmap/Weed Map Dataset Processed/RedEdge",     # For Azure ML
         channels=['R', 'G', 'B', 'NIR', 'RE'],
         train_folders=["000", "001", "002", "004"],
         test_folders=["003"],
