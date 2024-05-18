@@ -14,15 +14,18 @@ class OptunaStudyCreator:
         if use_storage:
             self._build_storage()
 
-    def __call__(self, study_name, direction, sampler, pruner=None):
+    def __call__(self, study_name, direction, sampler, pruner=None, load=False):
         db_study_name = f'study_{study_name}_{self.session_num}'
-        self._check_study_exists(db_study_name)
+
+        if not load:
+            self._check_study_exists(db_study_name)
 
         return optuna.create_study(study_name=db_study_name,
                                    storage=self.storage_obj,
                                    direction=direction,
                                    sampler=sampler,
-                                   pruner=pruner)
+                                   pruner=pruner,
+                                   load_if_exists=load)
 
     def _build_storage(self):
         try:
@@ -61,35 +64,10 @@ class OptunaStudyCreator:
 
     def delete_study_from_db(self, study_name, session):
         db_study_name = f'study_{study_name}_{session}'
-        db_file = file_path_builder(self.path_db, f'{self.experiment_name}', '', 'db')
-        storage_url = f'sqlite:///{db_file}'
-
-        engine = create_engine(storage_url)
-        with engine.connect() as connection:
-            transaction = connection.begin()
-            try:
-                # Delete from studies table
-                result = connection.execute(text(f"DELETE FROM studies WHERE study_name = :sname"), {"sname": db_study_name})
-                print(f"Deleted {result.rowcount} rows from studies")
-
-                # Delete from trial_params table
-                result = connection.execute(text(f"DELETE FROM trial_params WHERE trial_id IN (SELECT trial_id FROM trials WHERE study_id NOT IN (SELECT study_id FROM studies))"))
-                print(f"Deleted {result.rowcount} rows from trial_params")
-
-                # Delete from trial_values table
-                result = connection.execute(text(f"DELETE FROM trial_values WHERE trial_id IN (SELECT trial_id FROM trials WHERE study_id NOT IN (SELECT study_id FROM studies))"))
-                print(f"Deleted {result.rowcount} rows from trial_values")
-
-                # Delete from trial_intermediate_values table
-                result = connection.execute(text(f"DELETE FROM trial_intermediate_values WHERE trial_id IN (SELECT trial_id FROM trials WHERE study_id NOT IN (SELECT study_id FROM studies))"))
-                print(f"Deleted {result.rowcount} rows from trial_intermediate_values")
-
-                # Delete from trials table
-                result = connection.execute(text(f"DELETE FROM trials WHERE study_id NOT IN (SELECT study_id FROM studies)"))
-                print(f"Deleted {result.rowcount} rows from trials")
-
-                transaction.commit()
-            except Exception as e:
-                transaction.rollback()
-                raise
+        try:
+            optuna.delete_study(study_name=db_study_name, storage=self.storage_obj)
+            print(f"Study {study_name} deleted from DB.")
+        except Exception as e:
+            print(f"Failed to delete study {study_name}.")
+            print("Error: ", e)
 
