@@ -11,6 +11,8 @@ class OptunaStudyCreator:
         self.path_db = path_db
         self.session_num = session_num
 
+        self.storage_obj = None
+
         if use_storage:
             self._build_storage()
 
