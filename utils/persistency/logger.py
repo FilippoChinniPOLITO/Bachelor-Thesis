@@ -22,7 +22,7 @@ class Logger:
         self.log_count = 0
 
     def init_message(self):
-        if os.path.getsize(self.log_file) == 0:
+        if not os.path.exists(self.log_file):
             with open(self.log_file, 'a') as f:
                 f.write(f"Log file: {str(self.log_file)}\n"
                         f"Created on: {str(self.start_time).split('.')[0]}\n"
