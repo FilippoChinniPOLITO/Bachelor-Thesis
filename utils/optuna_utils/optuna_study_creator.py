@@ -19,7 +19,7 @@ class OptunaStudyCreator:
     def __call__(self, study_name, direction, sampler, pruner=None, load=False):
         db_study_name = f'study_{study_name}_{self.session_num}'
 
-        if not load:
+        if (not load) and (self.storage_obj is not None):
             self._check_study_exists(db_study_name)
 
         return optuna.create_study(study_name=db_study_name,
