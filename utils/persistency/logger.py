@@ -1,3 +1,4 @@
+import os
 import traceback
 from datetime import datetime
 
@@ -21,10 +22,11 @@ class Logger:
         self.log_count = 0
 
     def init_message(self):
-        with open(self.log_file, 'a') as f:
-            f.write(f"Log file: {str(self.log_file)}\n"
-                    f"Created on: {str(self.start_time).split('.')[0]}\n"
-                    f"{DASH_LINE}\n\n")
+        if os.path.getsize(self.log_file) == 0:
+            with open(self.log_file, 'a') as f:
+                f.write(f"Log file: {str(self.log_file)}\n"
+                        f"Created on: {str(self.start_time).split('.')[0]}\n"
+                        f"{DASH_LINE}\n\n")
 
     def log(self, message):
         print(message)

@@ -18,10 +18,11 @@ class OptunaRunner:
         self.metric_to_follow = metric_to_follow
         self.attrs = attrs
 
-    def __call__(self, study: Study, study_str: str):
+    def __call__(self, study: Study, study_str: str, load=False):
         # Init Logger
-        folder_exists_check(self.path_csv, self.session_num, f'df_{study_str}')
-        folder_exists_check(self.path_txt, self.session_num, f'log_{study_str}')
+        if not load:
+            folder_exists_check(self.path_csv, self.session_num, f'df_{study_str}')
+            folder_exists_check(self.path_txt, self.session_num, f'log_{study_str}')
         logger_study = Logger(file_name_builder(self.path_txt, self.session_num, f'log_{study_str}', 'txt'))
 
         # Run Optimization

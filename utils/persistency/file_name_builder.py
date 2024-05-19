@@ -6,7 +6,7 @@ def file_name_builder(root_folder, folder_num, type_file_name, extension):
 
     if os.path.exists(folder_num_path):
         if any((type_file_name in file) for file in os.listdir(folder_num_path)):
-            raise Exception(f"File {type_file_name} already exists inside {folder_num_path}")
+            print(f"File {type_file_name} already exists inside {folder_num_path}")
     else:
         os.makedirs(folder_num_path)
 
