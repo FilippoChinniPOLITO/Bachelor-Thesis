@@ -1,6 +1,7 @@
+import pickle
+
 import optuna
 from optuna.storages import RDBStorage
-from sqlalchemy import create_engine, text
 
 from utils.persistency.file_name_builder import folder_exists_check, file_name_builder, file_path_builder
 
@@ -18,15 +19,21 @@ class OptunaStudyCreator:
 
     def __call__(self, study_name, direction, sampler, pruner=None, load=False):
         db_study_name = f'study_{study_name}_{self.session_num}'
+        final_sampler = sampler
+        final_pruner = pruner
 
         if (not load) and (self.storage_obj is not None):
             self._check_study_exists(db_study_name)
 
+        if load and (self.storage_obj is not None):
+            final_sampler = self._load_sampler_from_pickle(study_name)
+            final_pruner = self._load_pruner_from_pickle(study_name)
+
         return optuna.create_study(study_name=db_study_name,
                                    storage=self.storage_obj,
                                    direction=direction,
-                                   sampler=sampler,
-                                   pruner=pruner,
+                                   sampler=final_sampler,
+                                   pruner=final_pruner,
                                    load_if_exists=load)
 
     def _build_storage(self):
@@ -72,4 +79,18 @@ class OptunaStudyCreator:
         except Exception as e:
             print(f"Failed to delete study {study_name}.")
             print("Error: ", e)
+
+    def _load_sampler_from_pickle(self, study_str):
+        path_sampler = self.path_db + '/samplers'
+        pickle_file = file_name_builder(path_sampler, self.session_num, f'sampler_{study_str}', 'pkl')
+
+        restored_sampler = pickle.load(open(pickle_file, "rb"))
+        return restored_sampler
+
+    def _load_pruner_from_pickle(self, study_str):
+        path_pruner = self.path_db + '/pruners'
+        pickle_file = file_name_builder(path_pruner, self.session_num, f'pruner_{study_str}', 'pkl')
+
+        restored_pruner = pickle.load(open(pickle_file, "rb"))
+        return restored_pruner
 

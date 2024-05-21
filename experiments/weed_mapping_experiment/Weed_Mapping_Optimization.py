@@ -130,6 +130,7 @@ DIRECTION = 'maximize'
 optuna_runner = OptunaRunner(objective_fn=objective,
                              n_jobs=1,
                              n_trials=64,
+                             path_db=OUTPUTS_FOLDER_PATH_DB,
                              path_csv=OUTPUTS_FOLDER_PATH_CSV,
                              path_txt=OUTPUTS_FOLDER_PATH_TXT,
                              session_num=SESSION_NUM,
