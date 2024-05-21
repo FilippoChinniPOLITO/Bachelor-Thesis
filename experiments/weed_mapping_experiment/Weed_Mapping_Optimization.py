@@ -19,6 +19,8 @@ sys.path.insert(0, '..')
 sys.path.insert(0, '../..')
 # sys.path.insert(0, '../code/Users/f.chinnicarella/src/root_workspace/Bachelor-Thesis')
 
+import torch.multiprocessing
+torch.multiprocessing.set_sharing_strategy('file_system')
 
 from utils.persistency.logger import Logger
 
@@ -39,7 +41,7 @@ from utils.optuna_utils.pso_sampler import PSOSampler
 #%%
 EXPERIMENT_NAME = 'Weed_Mapping_Optuna_Optimization'
 #%%
-SESSION_NUM = '000'
+SESSION_NUM = '001'
 #%%
 OUTPUTS_FOLDER_PATH_CSV = 'output_files_weed_mapping/csv'
 OUTPUTS_FOLDER_PATH_TXT = 'output_files_weed_mapping/txt'
@@ -126,7 +128,7 @@ ATTRS = ('number', 'value', 'user_attrs', 'state', 'params', 'duration', 'dateti
 DIRECTION = 'maximize'
 #%%
 optuna_runner = OptunaRunner(objective_fn=objective,
-                             n_jobs=2,
+                             n_jobs=1,
                              n_trials=64,
                              path_csv=OUTPUTS_FOLDER_PATH_CSV,
                              path_txt=OUTPUTS_FOLDER_PATH_TXT,
@@ -147,7 +149,7 @@ PSOSampler = PSOSampler(num_particles=8, max_generations=8)
 #%% md
 #### Optuna Constants - Pruners
 #%%
-MedianPruner = optuna.pruners.MedianPruner(n_startup_trials=0, n_warmup_steps=5, interval_steps=25, n_min_trials=4)
+MedianPruner = optuna.pruners.MedianPruner(n_startup_trials=2, n_warmup_steps=20, interval_steps=20, n_min_trials=4)
 HyperbandPruner = optuna.pruners.HyperbandPruner(min_resource=10, max_resource=200, reduction_factor=3, bootstrap_count=4)
 #%% md
 ### Run Optimizations
