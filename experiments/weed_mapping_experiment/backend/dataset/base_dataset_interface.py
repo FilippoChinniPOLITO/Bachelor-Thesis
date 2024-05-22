@@ -79,7 +79,8 @@ class DatasetInterface:
                                                         pin_memory=pin_memory,
                                                         sampler=train_sampler,
                                                         collate_fn=train_collate_fn,
-                                                        drop_last=train_loader_drop_last)
+                                                        drop_last=train_loader_drop_last,
+                                                        worker_init_fn=_set_worker_sharing_strategy) # ADDED - NOT FROM THE ORIGINAL VERSION
 
         self.val_loader = torch.utils.data.DataLoader(self.valset,
                                                       batch_size=val_batch_size,
@@ -87,7 +88,8 @@ class DatasetInterface:
                                                       num_workers=num_workers,
                                                       pin_memory=pin_memory,
                                                       sampler=val_sampler,
-                                                      collate_fn=val_collate_fn)
+                                                      collate_fn=val_collate_fn,
+                                                      worker_init_fn=_set_worker_sharing_strategy) # ADDED - NOT FROM THE ORIGINAL VERSION
 
         if self.testset is not None:
             self.test_loader = torch.utils.data.DataLoader(self.testset,
@@ -96,7 +98,8 @@ class DatasetInterface:
                                                            num_workers=num_workers,
                                                            pin_memory=pin_memory,
                                                            sampler=test_sampler,
-                                                           collate_fn=test_collate_fn)
+                                                           collate_fn=test_collate_fn,
+                                                           worker_init_fn=_set_worker_sharing_strategy) # ADDED - NOT FROM THE ORIGINAL VERSION
 
         self.classes = self.trainset.classes
 
@@ -124,3 +127,9 @@ class DatasetInterface:
 
     def undo_preprocess(self, x):
         return (Denormalize(self.lib_dataset_params['mean'], self.lib_dataset_params['std'])(x) * 255).type(torch.uint8)
+
+
+# ADDED - NOT FROM THE ORIGINAL VERSION
+def _set_worker_sharing_strategy(worker_id: int) -> None:
+    sharing_strategy = "file_system"
+    torch.multiprocessing.set_sharing_strategy(sharing_strategy)
