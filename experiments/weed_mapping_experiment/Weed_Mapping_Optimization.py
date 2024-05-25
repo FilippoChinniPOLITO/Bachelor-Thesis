@@ -19,9 +19,6 @@ sys.path.insert(0, '..')
 sys.path.insert(0, '../..')
 # sys.path.insert(0, '../code/Users/f.chinnicarella/src/root_workspace/Bachelor-Thesis')
 
-import torch.multiprocessing
-torch.multiprocessing.set_sharing_strategy('file_system')
-
 from utils.persistency.logger import Logger
 
 from utils.dataset.build_dataset import load_weedmap_data
