@@ -112,13 +112,14 @@ class PSOSampler(BaseSampler):
 
         fitness = values[0]
 
-        if fitness > particle.personal_best_score:
-            particle.personal_best_score = fitness
-            particle.personal_best_position = np.copy(particle.position)
+        if state == TrialState.COMPLETE:
+            if fitness > particle.personal_best_score:
+                particle.personal_best_score = fitness
+                particle.personal_best_position = np.copy(particle.position)
 
-        if fitness > self.global_best_score:
-            self.global_best_score = fitness
-            self.global_best_position = np.copy(particle.position)
+            if fitness > self.global_best_score:
+                self.global_best_score = fitness
+                self.global_best_position = np.copy(particle.position)
 
         w = self._inertia_factor_update(current_iter=current_gen-1)
         c1 = self._cognitive_factor_update(current_iter=current_gen-1)
