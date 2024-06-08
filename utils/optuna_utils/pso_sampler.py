@@ -112,14 +112,8 @@ class PSOSampler(BaseSampler):
 
         fitness = values[0]
 
-        if state == TrialState.COMPLETE:
-            if fitness > particle.personal_best_score:
-                particle.personal_best_score = fitness
-                particle.personal_best_position = np.copy(particle.position)
-
-            if fitness > self.global_best_score:
-                self.global_best_score = fitness
-                self.global_best_position = np.copy(particle.position)
+        if (state == TrialState.COMPLETE) or (self.global_best_position is None):
+            self._update_best_positions(particle, fitness)
 
         w = self._inertia_factor_update(current_iter=current_gen-1)
         c1 = self._cognitive_factor_update(current_iter=current_gen-1)
@@ -127,6 +121,15 @@ class PSOSampler(BaseSampler):
 
         particle.update_velocity(self.global_best_position, w, c1, c2)
         particle.update_position(self.bounds)
+
+    def _update_best_positions(self, particle, fitness):
+        if fitness > particle.personal_best_score:
+            particle.personal_best_score = fitness
+            particle.personal_best_position = np.copy(particle.position)
+
+        if fitness > self.global_best_score:
+            self.global_best_score = fitness
+            self.global_best_position = np.copy(particle.position)
 
 
 class _HPBound:
